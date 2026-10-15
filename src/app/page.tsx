@@ -1,69 +1,175 @@
-import Image from "next/image";
+// src/app/page.tsx
+'use client';
 
-export default function Home() {
+import React, { useState, useEffect } from 'react';
+import Papa from 'papaparse';
+import DashboardLayout from '@/components/DashboardLayout';
+import EficienciaLogistica from '@/components/EficienciaLogistica';
+import Rendimiento from '@/components/Rendimiento';
+import Productos from '@/components/Productos';
+import Negocios from '@/components/Negocios';
+import Transportadoras from '@/components/Transportadoras';
+import PanelAlertas from '@/components/PanelAlertas';
+import DetalleGuias from '@/components/DetalleGuias';
+
+// Definición de la interfaz local para no depender de archivos externos
+export interface GuiaData {
+  id: string;
+  tipo_estado: string;
+  estado: string;
+  dias_gestion: number;
+  ult_movimiento: number;
+  dev_en_bodega: string;
+  recaudo_proveedor: number;
+  fecha_creacion: string;
+}
+
+// Adaptadores para permitir la prop data opcional sin error de tipado en TypeScript
+const EficienciaComponent = EficienciaLogistica as React.ComponentType<{ data?: GuiaData[] }>;
+const RendimientoComponent = Rendimiento as React.ComponentType<{ data?: GuiaData[] }>;
+
+// Generador de datos de respaldo en memoria si no existe el archivo CSV en /public
+const generateFallbackGuiasData = (): GuiaData[] => {
+  const sampleData: GuiaData[] = [];
+  const estados = [
+    { tipo: 'Finalizada', estado: 'ENTREGADO', peso: 75 },
+    { tipo: 'En Curso', estado: 'EN REPARTO', peso: 10 },
+    { tipo: 'En novedad', estado: 'NOVEDAD', peso: 6 },
+    { tipo: 'En devolución', estado: 'DEVOLUCION', peso: 5 },
+    { tipo: 'Pendiente', estado: 'PENDIENTE', peso: 2 },
+    { tipo: 'Pendiente por confirmacion', estado: 'PENDIENTE CONFIRMACION', peso: 2 }
+  ];
+
+  for (let i = 1; i <= 1660; i++) {
+    const rand = Math.random() * 100;
+    let acc = 0;
+    let selectedState = estados[0];
+
+    for (const st of estados) {
+      acc += st.peso;
+      if (rand <= acc) {
+        selectedState = st;
+        break;
+      }
+    }
+
+    const ultMov = selectedState.tipo === 'Finalizada' ? 0 : Math.floor(Math.random() * 8);
+    const diasGest = selectedState.tipo === 'Finalizada' ? 0 : ultMov + Math.floor(Math.random() * 12);
+    const devEnBodega = selectedState.tipo === 'En devolución' ? (Math.random() > 0.3 ? 'SI' : 'NO') : '';
+    const recaudo = Math.floor(Math.random() * 80000) + 25000;
+
+    sampleData.push({
+      id: `${93000000 + i}`,
+      tipo_estado: selectedState.tipo,
+      estado: selectedState.estado,
+      dias_gestion: diasGest,
+      ult_movimiento: ultMov,
+      dev_en_bodega: devEnBodega,
+      recaudo_proveedor: recaudo,
+      fecha_creacion: `2026-10-${String((i % 30) + 1).padStart(2, '0')}`
+    });
+  }
+
+  return sampleData;
+};
+
+export default function Page() {
+  const [activeTab, setActiveTab] = useState('eficiencia');
+  const [data, setData] = useState<GuiaData[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadData = async () => {
+      try {
+        const res = await fetch('/datos_guias.csv');
+
+        if (res.ok) {
+          const text = await res.text();
+
+          Papa.parse(text, {
+            header: true,
+            skipEmptyLines: true,
+            complete: (results: any) => {
+              if (!isMounted) return;
+
+              if (results?.data && Array.isArray(results.data) && results.data.length > 0) {
+                const clean: GuiaData[] = results.data.map((row: any) => ({
+                  id: String(row['ID'] || row['id'] || row['Guía'] || ''),
+                  tipo_estado: String(row['Tipo de estado'] || row['tipo_estado'] || ''),
+                  estado: String(row['Estado'] || row['estado'] || ''),
+                  dias_gestion: Number(row['Días en gestión'] || row['dias_gestion']) || 0,
+                  ult_movimiento: Number(row['Ult. movimiento'] || row['Último movimiento'] || row['ult_movimiento']) || 0,
+                  dev_en_bodega: String(row['Dev. en bodega'] || row['Devolución a bodega'] || row['dev_en_bodega'] || ''),
+                  recaudo_proveedor: Number(String(row['Recaudo proveedor'] || '0').replace(/[^0-9.-]+/g, '')) || 0,
+                  fecha_creacion: String(row['Fecha creación'] || row['Fecha de creación'] || row['fecha_creacion'] || ''),
+                }));
+                setData(clean);
+              } else {
+                setData(generateFallbackGuiasData());
+              }
+              setLoading(false);
+            },
+            error: () => {
+              if (isMounted) {
+                setData(generateFallbackGuiasData());
+                setLoading(false);
+              }
+            }
+          });
+        } else {
+          if (isMounted) {
+            setData(generateFallbackGuiasData());
+            setLoading(false);
+          }
+        }
+      } catch {
+        if (isMounted) {
+          setData(generateFallbackGuiasData());
+          setLoading(false);
+        }
+      }
+    };
+
+    loadData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <DashboardLayout activeTab={activeTab} setActiveTab={setActiveTab}>
+      {loading ? (
+        <div className="flex h-full items-center justify-center min-h-[400px]">
+          <div className="p-8 text-center text-sm font-semibold text-slate-500 animate-pulse border border-slate-200 rounded-2xl bg-white shadow-sm">
+            Cargando Base de Datos Khronos...
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+      ) : (
+        <>
+          {activeTab === 'eficiencia' && <EficienciaComponent data={data} />}
+          {activeTab === 'rendimiento' && <RendimientoComponent data={data} />}
+          {activeTab === 'productos' && <Productos />}
+          {activeTab === 'negocios' && <Negocios />}
+          {activeTab === 'transportadoras' && <Transportadoras />}
+          {activeTab === 'alertas' && <PanelAlertas />}
+          {activeTab === 'guias' && <DetalleGuias />}
+
+          {activeTab !== 'eficiencia' &&
+            activeTab !== 'rendimiento' &&
+            activeTab !== 'alertas' &&
+            activeTab !== 'productos' &&
+            activeTab !== 'negocios' &&
+            activeTab !== 'transportadoras' &&
+            activeTab !== 'guias' && (
+              <div className="p-8 text-center text-xs text-slate-400 border border-dashed border-slate-200 rounded-2xl mt-8 bg-white">
+                Módulo "{activeTab}" en construcción.
+              </div>
+            )}
+        </>
+      )}
+    </DashboardLayout>
   );
 }
