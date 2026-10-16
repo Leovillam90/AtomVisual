@@ -1,7 +1,19 @@
 // src/formulas/index.ts
-export * from './types';
-export * from './calculoMetricas';
-export * from './calculoProductos';
-export * from './calculoNegocios';
-export * from './calculoEficiencia';
-export * from './calculoGuias'; 
+
+// Exportaciones de Productos
+export {
+  agruparMetricasPorProducto,
+  segmentarProductosPorTipoEstado
+} from './calculoProductos';
+
+export type {
+  GrupoProductoAtom,
+  ResultadoSegmentacionProductos,
+  StatItem,
+  MetricsByStatusMap,
+  NegocioItem
+} from './calculoProductos';
+
+// Exportaciones de Guías (Corregido)
+export { procesarGuiasCompletas } from './calculoGuias';
+export type { GuiaFilaCompleta } from './calculoGuias';

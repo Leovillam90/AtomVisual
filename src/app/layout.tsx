@@ -1,11 +1,10 @@
 // src/app/layout.tsx
-import type { Metadata } from 'next';
 import './globals.css';
-import Sidebar from '@/components/Sidebar';
+import Sidebar from '@/components/Sidebar'; // Ajusta la ruta si lo tienes en '@/app/Sidebar'
 
-export const metadata: Metadata = {
+export const metadata = {
   title: 'Dropi · ATOM PRO',
-  description: 'Centro de comando logístico y análisis operativo',
+  description: 'Control de logística y rentabilidad',
 };
 
 export default function RootLayout({
@@ -16,12 +15,12 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body className="bg-[#F8FAFC] antialiased">
-        <div className="min-h-screen flex">
-          {/* Menú Lateral Estático (Izquierda como en la imagen) */}
+        <div className="flex min-h-screen w-full">
+          {/* Sidebar compatible tanto con position="left" como sin props */}
           <Sidebar position="left" />
 
-          {/* Contenido Dinámico con margen izquierdo de 64 (256px) */}
-          <main className="flex-1 pl-64 min-w-0 overflow-x-hidden">
+          {/* Contenedor principal fluido */}
+          <main className="flex-1 min-w-0 overflow-x-hidden">
             {children}
           </main>
         </div>

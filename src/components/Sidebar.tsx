@@ -20,13 +20,20 @@ import {
   Settings, 
   Calendar, 
   Megaphone, 
-  Menu,
-  Zap,
-  Atom
+  Menu
 } from 'lucide-react';
 
 // ==========================================
-// 1. ITEMS VISUALES DE DROPI (DESHABILITADOS)
+// INTERFAZ DE PROPS PARA TYPESCRIPT
+// ==========================================
+export interface SidebarProps {
+  position?: 'left' | 'right' | string;
+  className?: string;
+  [key: string]: any;
+}
+
+// ==========================================
+// 1. ÍTEMS VISUALES DE DROPI (SOLO VISUAL)
 // ==========================================
 const DROPI_MENU_ITEMS = [
   { label: 'Inicio', icon: Home },
@@ -47,7 +54,7 @@ const DROPI_MENU_ITEMS = [
 ];
 
 // ==========================================
-// 2. ITEMS DE ATOM (HABILITADOS Y FUNCIONALES)
+// 2. ÍTEMS DE ATOM (FUNCIONALES Y CONECTADOS)
 // ==========================================
 const ATOM_SUBMENU_ITEMS = [
   { label: 'Eficiencia logística', href: '/eficiencia' },
@@ -60,15 +67,14 @@ const ATOM_SUBMENU_ITEMS = [
   { label: 'Líder de cuenta', href: '#', disabled: true },
 ];
 
-export default function Sidebar() {
+export default function Sidebar({ position = 'left', className = '' }: SidebarProps) {
   const pathname = usePathname();
 
   return (
-    <aside className="w-[215px] h-screen bg-white border-r border-slate-200/90 flex flex-col shrink-0 sticky top-0 select-none z-40 font-sans">
+    <aside className={`w-[215px] h-screen bg-white border-r border-slate-200/90 flex flex-col shrink-0 sticky top-0 select-none z-40 font-sans ${className}`}>
       
       {/* 1. CABECERA: LOGO DROPI + BOTÓN MENÚ HAMBURGUESA */}
       <div className="h-16 px-4 flex items-center justify-between border-b border-slate-50 shrink-0">
-        {/* Logo Dropi con robot naranja */}
         <div className="flex items-center gap-2">
           <svg className="w-8 h-8 text-[#f3962e]" viewBox="0 0 40 40" fill="currentColor">
             <path d="M20 4C11.163 4 4 11.163 4 20s7.163 16 16 16 16-7.163 16-16S28.837 4 20 4zm0 28c-6.627 0-12-5.373-12-12S13.373 8 20 8s12 5.373 12 12-5.373 12-12 12z" opacity="0.2"/>
@@ -82,7 +88,6 @@ export default function Sidebar() {
           </span>
         </div>
 
-        {/* Icono de menú hamburguesa */}
         <button 
           type="button" 
           className="text-slate-500 hover:text-slate-800 p-1.5 rounded-lg hover:bg-slate-100 transition cursor-pointer"
@@ -91,10 +96,10 @@ export default function Sidebar() {
         </button>
       </div>
 
-      {/* 2. CONTENEDOR SCROLLABLE */}
-      <div className="flex-1 overflow-y-auto py-2 px-2.5 space-y-0.5 custom-sidebar-scroll text-[13px]">
+      {/* 2. LISTA CON SCROLL INDEPENDIENTE */}
+      <div className="flex-1 overflow-y-auto py-2 px-2.5 space-y-0.5 text-[13px]">
         
-        {/* MENÚ SUPERIOR DE DROPI (SOLO VISUAL / DESHABILITADO) */}
+        {/* MENÚ SUPERIOR (DESHABILITADO / SOLO VISUAL) */}
         {DROPI_MENU_ITEMS.map((item, idx) => {
           const IconComponent = item.icon;
           return (
@@ -107,7 +112,6 @@ export default function Sidebar() {
                 <span className="font-normal truncate">{item.label}</span>
               </div>
 
-              {/* Badge verde "Nuevo" para Configuraciones */}
               {item.hasBadge && (
                 <span className="bg-[#42c797] text-white text-[10px] font-bold px-2 py-0.2 rounded-full uppercase tracking-wider scale-90">
                   Nuevo
@@ -118,11 +122,10 @@ export default function Sidebar() {
         })}
 
         {/* ======================================================== */}
-        {/* SECCIÓN ATOM (HABILITADA, INTERACTIVA Y CONECTADA A RUTAS) */}
+        {/* SECCIÓN ATOM (HABILITADA Y CONECTADA A RUTAS) */}
         {/* ======================================================== */}
         <div className="pt-2 mt-2 border-t border-slate-100">
           
-          {/* Título de la sección ATOM con Badge verde */}
           <div className="flex items-center justify-between px-3 py-2 text-slate-800">
             <div className="flex items-center gap-2.5">
               <span className="font-mono text-base font-black text-slate-900 tracking-tighter">
@@ -138,7 +141,6 @@ export default function Sidebar() {
             </span>
           </div>
 
-          {/* Submenú de pantallas ATOM */}
           <div className="pl-6 pr-1 space-y-0.5 pt-0.5">
             {ATOM_SUBMENU_ITEMS.map((sub, sIdx) => {
               const isActive = pathname === sub.href;
