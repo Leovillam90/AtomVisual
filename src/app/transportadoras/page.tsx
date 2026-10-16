@@ -308,28 +308,14 @@ export default function TransportadorasPage() {
             </p>
           </div>
 
-          <div className="flex items-end gap-3">
-            <button
-              type="button"
-              onClick={() => {
-                setNotification('Reporte generado exitosamente para tiendas dropshippers');
-                setTimeout(() => setNotification(null), 3500);
-              }}
-              className="bg-white border border-slate-300 hover:border-orange-400 hover:text-orange-600 text-slate-700 font-semibold px-4 py-2 rounded-xl flex items-center gap-2 shadow-2xs text-xs transition-all active:scale-95 cursor-pointer"
-            >
-              <Share2 size={14} className="text-orange-500" />
-              <span>Compartir Ranking con Tiendas</span>
-            </button>
-
-            <FiltroFecha
-              startDate={dateFrom}
-              endDate={dateTo}
-              onApply={(start, end) => {
-                setDateFrom(start);
-                setDateTo(end);
-              }}
-            />
-          </div>
+          <FiltroFecha
+            startDate={dateFrom}
+            endDate={dateTo}
+            onApply={(start, end) => {
+              setDateFrom(start);
+              setDateTo(end);
+            }}
+          />
         </div>
       </div>
 
@@ -395,6 +381,21 @@ export default function TransportadorasPage() {
             <p className="text-xs text-slate-500 mt-0.5">
               Cruza Ciudad, Departamento y Producto para ver la mejor transportadora.
             </p>
+
+            {/* BOTÓN COLOCADO DEBAJO DE RANKING DE RENTABILIDAD POR DESTINO */}
+            <div className="mt-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setNotification('Reporte generado exitosamente para tiendas dropshippers');
+                  setTimeout(() => setNotification(null), 3500);
+                }}
+                className="bg-white border border-slate-300 hover:border-orange-400 hover:text-orange-600 text-slate-700 font-semibold px-4 py-2 rounded-xl flex items-center gap-2 shadow-2xs text-xs transition-all active:scale-95 cursor-pointer w-fit"
+              >
+                <Share2 size={14} className="text-orange-500" />
+                <span>Compartir Ranking con Tiendas</span>
+              </button>
+            </div>
           </div>
 
           {/* Grilla 2x2 de selectores */}
