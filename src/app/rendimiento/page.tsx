@@ -269,7 +269,7 @@ export default function RendimientoPage() {
         <nav className="flex items-center gap-2 text-xs text-slate-400 font-medium">
           <Home size={14} className="text-slate-400" />
           <span>/</span>
-          <span className="text-slate-600">Rendimiento</span>
+          <span className="text-slate-600">Eficiencia Logistica</span>
         </nav>
 
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
