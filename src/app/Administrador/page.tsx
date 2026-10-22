@@ -1,7 +1,9 @@
-// src/app/Administrador/page.tsx (o src/app/Administrador/supremo/page.tsx)
+// src/app/Administrador/page.tsx
 'use client';
 
-import React, { useState, useMemo } from 'react';
+export const dynamic = 'force-dynamic';
+
+import React, { useState, useMemo, useEffect } from 'react';
 import { 
   ShieldCheck, 
   Search, 
@@ -12,7 +14,6 @@ import {
   AlertTriangle, 
   Eye, 
   X, 
-  Lock, 
   Copy, 
   Check, 
   Calendar, 
@@ -25,6 +26,17 @@ import {
   UserPlus
 } from 'lucide-react';
 
+// ==========================================
+// 1. MODELOS DE DATOS Y ESTADO DE GOBIERNO
+// ==========================================
+interface PermisosAdmin {
+  verProductos: boolean;
+  verNegocios: boolean;
+  verTransportadoras: boolean;
+  verGuias: boolean;
+  impersonarLectura: boolean;
+}
+
 interface ProveedorCuenta {
   id: string;
   nombre: string;
@@ -33,13 +45,7 @@ interface ProveedorCuenta {
   bandera: string;
   estado: 'ACTIVA' | 'BANEADA' | 'CANCELADA';
   autorizadoAdminNormal: boolean;
-  permisosAdminNormal: {
-    verProductos: boolean;
-    verNegocios: boolean;
-    verTransportadoras: boolean;
-    verGuias: boolean;
-    impersonarLectura: boolean;
-  };
+  permisosAdminNormal: PermisosAdmin;
   analistaAsignado: string;
   tokenIntegracion: string;
   fechaInicio: string;
@@ -190,11 +196,13 @@ const CUENTAS_BASE: ProveedorCuenta[] = [
   }
 ];
 
-function checkVigencia(fechaFinStr: string) {
+// Cálculo seguro de vigencia que no bloquea la compilación estática
+function checkVigenciaSegura(fechaFinStr: string, fechaReferencia: Date | null) {
   if (!fechaFinStr) return { dias: 0, badge: 'Sin vigencia', estilo: 'bg-slate-100 text-slate-500 border-slate-200' };
-  const hoy = new Date();
+  if (!fechaReferencia) return { dias: 0, badge: 'Calculando...', estilo: 'bg-slate-100 text-slate-500 border-slate-200' };
+
   const fin = new Date(fechaFinStr);
-  const diffTime = fin.getTime() - hoy.getTime();
+  const diffTime = fin.getTime() - fechaReferencia.getTime();
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
   if (diffDays < 0) {
@@ -208,6 +216,12 @@ function checkVigencia(fechaFinStr: string) {
 
 export default function AdministradorSupremoPage() {
   const [cuentas, setCuentas] = useState<ProveedorCuenta[]>(CUENTAS_BASE);
+  const [fechaActual, setFechaActual] = useState<Date | null>(null);
+
+  // Inicialización de la fecha en cliente para evitar fallos de hidratación y prerender
+  useEffect(() => {
+    setFechaActual(new Date());
+  }, []);
 
   // Filtros
   const [filtroPais, setFiltroPais] = useState<string>('(Todos)');
@@ -217,7 +231,13 @@ export default function AdministradorSupremoPage() {
 
   // 1. Modal para Asignar Nuevo Administrador Global
   const [modalNuevoAdminGlobal, setModalNuevoAdminGlobal] = useState<boolean>(false);
-  const [nuevoAdminForm, setNuevoAdminForm] = useState({
+  const [nuevoAdminForm, setNuevoAdminForm] = useState<{
+    nombre: string;
+    correo: string;
+    rol: string;
+    pais: 'Colombia' | 'México' | 'Ecuador' | 'Panamá' | 'Perú';
+    permisos: PermisosAdmin;
+  }>({
     nombre: '',
     correo: '',
     rol: 'Admin Normal',
@@ -236,13 +256,7 @@ export default function AdministradorSupremoPage() {
     cuenta: ProveedorCuenta;
     autorizado: boolean;
     analista: string;
-    permisos: {
-      verProductos: boolean;
-      verNegocios: boolean;
-      verTransportadoras: boolean;
-      verGuias: boolean;
-      impersonarLectura: boolean;
-    };
+    permisos: PermisosAdmin;
   } | null>(null);
 
   // 3. Modal de Token
@@ -532,7 +546,7 @@ export default function AdministradorSupremoPage() {
               </tr>
             ) : (
               cuentasFiltradas.map((c) => {
-                const vig = checkVigencia(c.fechaFin);
+                const vig = checkVigenciaSegura(c.fechaFin, fechaActual);
 
                 return (
                   <tr key={c.id} className="hover:bg-slate-50/70 transition-colors">
@@ -794,7 +808,7 @@ export default function AdministradorSupremoPage() {
                   <label className="font-bold text-slate-700">País de Cobertura:</label>
                   <select
                     value={nuevoAdminForm.pais}
-                    onChange={(e) => setNuevoAdminForm(prev => ({ ...prev, pais: e.target.value }))}
+                    onChange={(e) => setNuevoAdminForm(prev => ({ ...prev, pais: e.target.value as any }))}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 outline-none focus:border-purple-500 cursor-pointer"
                   >
                     <option value="Colombia">🇨🇴 Colombia</option>
@@ -809,17 +823,19 @@ export default function AdministradorSupremoPage() {
               <div className="space-y-1.5 pt-1">
                 <span className="font-bold text-slate-700 block">Permisos operativos habilitados:</span>
                 <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
-                  {[
-                    { key: 'verProductos', label: 'Acceso a Módulo de Productos' },
-                    { key: 'verNegocios', label: 'Acceso a Módulo de Negocios (Dropshippers)' },
-                    { key: 'verTransportadoras', label: 'Acceso a Módulo de Transportadoras' },
-                    { key: 'verGuias', label: 'Acceso a Detalle de Guías & Reclamaciones' },
-                    { key: 'impersonarLectura', label: 'Permiso para Impersonar Proveedores en Modo Lectura' }
-                  ].map((p) => (
+                  {(
+                    [
+                      { key: 'verProductos', label: 'Acceso a Módulo de Productos' },
+                      { key: 'verNegocios', label: 'Acceso a Módulo de Negocios (Dropshippers)' },
+                      { key: 'verTransportadoras', label: 'Acceso a Módulo de Transportadoras' },
+                      { key: 'verGuias', label: 'Acceso a Detalle de Guías & Reclamaciones' },
+                      { key: 'impersonarLectura', label: 'Permiso para Impersonar Proveedores en Modo Lectura' }
+                    ] as const
+                  ).map((p) => (
                     <label key={p.key} className="flex items-center gap-2 cursor-pointer select-none">
                       <input
                         type="checkbox"
-                        checked={(nuevoAdminForm.permisos as any)[p.key]}
+                        checked={nuevoAdminForm.permisos[p.key]}
                         onChange={(e) => {
                           const checked = e.target.checked;
                           setNuevoAdminForm(prev => ({
@@ -918,17 +934,19 @@ export default function AdministradorSupremoPage() {
             <div className="space-y-1.5">
               <span className="text-xs font-bold text-slate-700">Alcance de visualización permitido:</span>
               <div className="space-y-2 p-3 bg-slate-50/70 border border-slate-200 rounded-xl text-xs">
-                {[
-                  { key: 'verProductos', label: 'Módulo de Productos (Ranking y rotación)' },
-                  { key: 'verNegocios', label: 'Módulo de Negocios (Canales Dropshipper)' },
-                  { key: 'verTransportadoras', label: 'Módulo de Transportadoras (Efectividad)' },
-                  { key: 'verGuias', label: 'Detalle de Guías & Reclamaciones CAS' },
-                  { key: 'impersonarLectura', label: 'Permitir Impersonación Completa en Modo Lectura' }
-                ].map((item) => (
+                {(
+                  [
+                    { key: 'verProductos', label: 'Módulo de Productos (Ranking y rotación)' },
+                    { key: 'verNegocios', label: 'Módulo de Negocios (Canales Dropshipper)' },
+                    { key: 'verTransportadoras', label: 'Módulo de Transportadoras (Efectividad)' },
+                    { key: 'verGuias', label: 'Detalle de Guías & Reclamaciones CAS' },
+                    { key: 'impersonarLectura', label: 'Permitir Impersonación Completa en Modo Lectura' }
+                  ] as const
+                ).map((item) => (
                   <label key={item.key} className="flex items-center gap-2.5 cursor-pointer select-none">
                     <input
                       type="checkbox"
-                      checked={(modalPermisosAdmin.permisos as any)[item.key]}
+                      checked={modalPermisosAdmin.permisos[item.key]}
                       disabled={!modalPermisosAdmin.autorizado}
                       onChange={(e) => {
                         const checked = e.target.checked;
