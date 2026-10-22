@@ -6,7 +6,9 @@ import {
   Home, 
   Share2, 
   ChevronDown, 
-  CheckCircle2 
+  CheckCircle2,
+  Truck,
+  BarChart2
 } from 'lucide-react';
 import { useFiltrosCruzados } from '@/hooks/useFiltrosCruzados';
 import FiltroFecha from '@/filtros/FiltroFecha';
@@ -18,75 +20,81 @@ interface BaseCarrierStats {
   transportadora: string;
   velocidadDias: number;
   devolucionPct: number;
+  guiasEstimadas?: number;
 }
 
 const DESTINOS_BASE: Record<string, Record<string, BaseCarrierStats[]>> = {
   'Cundinamarca': {
     'Bogotá D.C.': [
-      { transportadora: 'Coordinadora', velocidadDias: 1.4, devolucionPct: 5.2 },
-      { transportadora: 'Envia', velocidadDias: 1.7, devolucionPct: 6.8 },
-      { transportadora: 'Veloces', velocidadDias: 1.8, devolucionPct: 7.4 },
-      { transportadora: 'Interrapidisimo', velocidadDias: 1.9, devolucionPct: 8.1 },
-      { transportadora: 'Domina', velocidadDias: 2.5, devolucionPct: 12.0 },
+      { transportadora: 'Coordinadora', velocidadDias: 1.4, devolucionPct: 5.2, guiasEstimadas: 840 },
+      { transportadora: 'Envia', velocidadDias: 1.7, devolucionPct: 6.8, guiasEstimadas: 520 },
+      { transportadora: 'Veloces', velocidadDias: 1.8, devolucionPct: 7.4, guiasEstimadas: 180 },
+      { transportadora: 'Interrapidisimo', velocidadDias: 1.9, devolucionPct: 8.1, guiasEstimadas: 240 },
+      { transportadora: 'Domina', velocidadDias: 2.5, devolucionPct: 12.0, guiasEstimadas: 90 },
+      { transportadora: 'Tcc', velocidadDias: 1.8, devolucionPct: 6.5, guiasEstimadas: 310 },
     ],
     'Soacha': [
-      { transportadora: 'Coordinadora', velocidadDias: 1.8, devolucionPct: 7.2 },
-      { transportadora: 'Envia', velocidadDias: 1.9, devolucionPct: 8.5 },
-      { transportadora: 'Interrapidisimo', velocidadDias: 2.0, devolucionPct: 9.1 },
+      { transportadora: 'Coordinadora', velocidadDias: 1.8, devolucionPct: 7.2, guiasEstimadas: 190 },
+      { transportadora: 'Envia', velocidadDias: 1.9, devolucionPct: 8.5, guiasEstimadas: 130 },
+      { transportadora: 'Interrapidisimo', velocidadDias: 2.0, devolucionPct: 9.1, guiasEstimadas: 110 },
     ]
   },
   'Antioquia': {
     'Medellín': [
-      { transportadora: 'Envia', velocidadDias: 1.6, devolucionPct: 5.8 },
-      { transportadora: 'Coordinadora', velocidadDias: 1.8, devolucionPct: 6.4 },
-      { transportadora: 'Tcc', velocidadDias: 1.9, devolucionPct: 7.2 },
-      { transportadora: 'Veloces', velocidadDias: 1.9, devolucionPct: 8.5 },
-      { transportadora: 'Interrapidisimo', velocidadDias: 2.2, devolucionPct: 10.4 },
+      { transportadora: 'Envia', velocidadDias: 1.6, devolucionPct: 5.8, guiasEstimadas: 410 },
+      { transportadora: 'Coordinadora', velocidadDias: 1.8, devolucionPct: 6.4, guiasEstimadas: 480 },
+      { transportadora: 'Tcc', velocidadDias: 1.9, devolucionPct: 7.2, guiasEstimadas: 340 },
+      { transportadora: 'Veloces', velocidadDias: 1.9, devolucionPct: 8.5, guiasEstimadas: 120 },
+      { transportadora: 'Interrapidisimo', velocidadDias: 2.2, devolucionPct: 10.4, guiasEstimadas: 160 },
     ],
     'Bello': [
-      { transportadora: 'Coordinadora', velocidadDias: 1.7, devolucionPct: 5.0 },
-      { transportadora: 'Veloces', velocidadDias: 1.8, devolucionPct: 8.2 },
-      { transportadora: 'Interrapidisimo', velocidadDias: 2.1, devolucionPct: 11.6 },
-      { transportadora: 'Envia', velocidadDias: 2.0, devolucionPct: 13.1 },
+      { transportadora: 'Coordinadora', velocidadDias: 1.7, devolucionPct: 5.0, guiasEstimadas: 110 },
+      { transportadora: 'Veloces', velocidadDias: 1.8, devolucionPct: 8.2, guiasEstimadas: 60 },
+      { transportadora: 'Interrapidisimo', velocidadDias: 2.1, devolucionPct: 11.6, guiasEstimadas: 75 },
+      { transportadora: 'Envia', velocidadDias: 2.0, devolucionPct: 13.1, guiasEstimadas: 95 },
     ]
   },
   'Valle del Cauca': {
     'Cali': [
-      { transportadora: 'Tcc', velocidadDias: 2.0, devolucionPct: 6.9 },
-      { transportadora: 'Coordinadora', velocidadDias: 2.1, devolucionPct: 8.2 },
-      { transportadora: 'Envia', velocidadDias: 2.3, devolucionPct: 9.5 },
-      { transportadora: 'Interrapidisimo', velocidadDias: 2.5, devolucionPct: 11.2 },
+      { transportadora: 'Tcc', velocidadDias: 2.0, devolucionPct: 6.9, guiasEstimadas: 380 },
+      { transportadora: 'Coordinadora', velocidadDias: 2.1, devolucionPct: 8.2, guiasEstimadas: 320 },
+      { transportadora: 'Envia', velocidadDias: 2.3, devolucionPct: 9.5, guiasEstimadas: 240 },
+      { transportadora: 'Interrapidisimo', velocidadDias: 2.5, devolucionPct: 11.2, guiasEstimadas: 190 },
     ],
     'Palmira': [
-      { transportadora: 'Coordinadora', velocidadDias: 2.0, devolucionPct: 7.5 },
-      { transportadora: 'Envia', velocidadDias: 2.2, devolucionPct: 8.8 },
-      { transportadora: 'Interrapidisimo', velocidadDias: 2.4, devolucionPct: 10.1 },
+      { transportadora: 'Coordinadora', velocidadDias: 2.0, devolucionPct: 7.5, guiasEstimadas: 95 },
+      { transportadora: 'Envia', velocidadDias: 2.2, devolucionPct: 8.8, guiasEstimadas: 80 },
+      { transportadora: 'Interrapidisimo', velocidadDias: 2.4, devolucionPct: 10.1, guiasEstimadas: 70 },
     ]
   },
   'Atlántico': {
     'Barranquilla': [
-      { transportadora: 'Interrapidisimo', velocidadDias: 2.4, devolucionPct: 9.4 },
-      { transportadora: 'Coordinadora', velocidadDias: 2.7, devolucionPct: 11.0 },
-      { transportadora: 'Envia', velocidadDias: 2.8, devolucionPct: 12.3 },
+      { transportadora: 'Interrapidisimo', velocidadDias: 2.4, devolucionPct: 9.4, guiasEstimadas: 220 },
+      { transportadora: 'Coordinadora', velocidadDias: 2.7, devolucionPct: 11.0, guiasEstimadas: 180 },
+      { transportadora: 'Envia', velocidadDias: 2.8, devolucionPct: 12.3, guiasEstimadas: 160 },
+      { transportadora: 'Tcc', velocidadDias: 2.5, devolucionPct: 10.1, guiasEstimadas: 140 },
     ]
   },
   'Santander': {
     'Bucaramanga': [
-      { transportadora: 'Coordinadora', velocidadDias: 2.1, devolucionPct: 7.1 },
-      { transportadora: 'Tcc', velocidadDias: 2.3, devolucionPct: 8.9 },
-      { transportadora: 'Envia', velocidadDias: 2.5, devolucionPct: 10.4 },
+      { transportadora: 'Coordinadora', velocidadDias: 2.1, devolucionPct: 7.1, guiasEstimadas: 210 },
+      { transportadora: 'Tcc', velocidadDias: 2.3, devolucionPct: 8.9, guiasEstimadas: 170 },
+      { transportadora: 'Envia', velocidadDias: 2.5, devolucionPct: 10.4, guiasEstimadas: 130 },
+      { transportadora: 'Interrapidisimo', velocidadDias: 2.6, devolucionPct: 11.2, guiasEstimadas: 110 },
     ]
   },
   'Bolívar': {
     'Cartagena': [
-      { transportadora: 'Interrapidisimo', velocidadDias: 2.8, devolucionPct: 11.5 },
-      { transportadora: 'Coordinadora', velocidadDias: 3.0, devolucionPct: 13.8 },
-      { transportadora: 'Envia', velocidadDias: 3.2, devolucionPct: 15.2 },
+      { transportadora: 'Interrapidisimo', velocidadDias: 2.8, devolucionPct: 11.5, guiasEstimadas: 190 },
+      { transportadora: 'Coordinadora', velocidadDias: 3.0, devolucionPct: 13.8, guiasEstimadas: 140 },
+      { transportadora: 'Envia', velocidadDias: 3.2, devolucionPct: 15.2, guiasEstimadas: 110 },
+      { transportadora: 'Tcc', velocidadDias: 2.9, devolucionPct: 12.4, guiasEstimadas: 90 },
     ]
   },
   'Amazonas': {
     'Leticia': [
-      { transportadora: 'Interrapidisimo', velocidadDias: 4.8, devolucionPct: 32.5 }
+      { transportadora: 'Interrapidisimo', velocidadDias: 4.8, devolucionPct: 32.5, guiasEstimadas: 45 },
+      { transportadora: 'Coordinadora', velocidadDias: 5.2, devolucionPct: 36.0, guiasEstimadas: 25 },
     ]
   }
 };
@@ -104,7 +112,6 @@ const COMUNIDADES_LIST = [
   '(Todas)', 'Comunidad Élite', 'Comunidad Master', 'Comunidad Rocket'
 ];
 
-// Estándar del mercado logístico en Colombia
 const CARRIER_BENCHMARKS_BASE: Record<string, { nombre: string; promedioNacional: number }> = {
   'COORDINADORA': { nombre: 'Coordinadora', promedioNacional: 71.2 },
   'TCC': { nombre: 'Tcc', promedioNacional: 73.5 },
@@ -125,15 +132,14 @@ export default function TransportadorasPage() {
     dateTo, setDateTo
   } = useFiltrosCruzados();
 
-  const [selectedDepto, setSelectedDepto] = useState<string>('Cundinamarca');
-  const [selectedCiudad, setSelectedCiudad] = useState<string>('Bogotá D.C.');
+  // Estados de filtros
+  const [selectedDepto, setSelectedDepto] = useState<string>('(Todos)');
+  const [selectedCiudad, setSelectedCiudad] = useState<string>('(Todas)');
   const [selectedProducto, setSelectedProducto] = useState<string>('(Todos)');
   const [selectedComunidad, setSelectedComunidad] = useState<string>('(Todas)');
   const [notification, setNotification] = useState<string | null>(null);
 
-  // ==========================================
-  // CÁLCULO DINÁMICO DE BENCHMARKING DE TRANSPORTADORAS
-  // ==========================================
+  // Benchmarking Nacional de Transportadoras
   const resTransportadoras = useMemo(() => {
     const records = Array.isArray(filteredData) ? filteredData : [];
 
@@ -175,21 +181,7 @@ export default function TransportadorasPage() {
       };
     }).sort((a, b) => b.miTasa - a.miTasa);
 
-    const transportadorasConData = benchmarkingNacional.filter(b => b.totalGuias > 0);
-    const mejor = transportadorasConData.length > 0 
-      ? transportadorasConData[0] 
-      : { nombre: 'Coordinadora', miTasa: 72.4 };
-    const peor = transportadorasConData.length > 0 
-      ? transportadorasConData[transportadorasConData.length - 1] 
-      : { nombre: 'Interrapidisimo', miTasa: 58.8 };
-
     return {
-      tarjetasKpi: {
-        tiempoPromedioEntrega: 2.1,
-        promedioNacionalEntrega: 2.4,
-        mejorTransportadora: { nombre: mejor.nombre, efectividad: mejor.miTasa },
-        peorTransportadora: { nombre: peor.nombre, efectividad: peor.miTasa }
-      },
       benchmarkingNacional
     };
   }, [filteredData]);
@@ -206,17 +198,11 @@ export default function TransportadorasPage() {
 
   const handleDeptoChange = (depto: string) => {
     setSelectedDepto(depto);
-    if (depto === 'Cundinamarca') setSelectedCiudad('Bogotá D.C.');
-    else if (depto === 'Antioquia') setSelectedCiudad('Medellín');
-    else if (depto === 'Valle del Cauca') setSelectedCiudad('Cali');
-    else if (depto === 'Amazonas') setSelectedCiudad('Leticia');
-    else setSelectedCiudad('(Todas)');
+    setSelectedCiudad('(Todas)');
   };
 
-  // Ranking consolidado por transportadora según filtros secundarios
+  // Ranking acumulado por transportadora según filtros seleccionados
   const tableRows = useMemo(() => {
-    const agrupado = new Map<string, { sumVel: number; sumDev: number; count: number }>();
-
     let prodVelMod = 0;
     let prodDevMod = 0;
     if (selectedProducto.includes('Ventilador')) { prodVelMod = 0.2; prodDevMod = 1.1; }
@@ -228,17 +214,26 @@ export default function TransportadorasPage() {
     if (selectedComunidad === 'Comunidad Élite') comDevMod = -1.0;
     else if (selectedComunidad === 'Comunidad Master') comDevMod = -0.5;
 
+    const agrupado = new Map<string, { 
+      sumVel: number; 
+      sumDev: number; 
+      count: number; 
+      totalGuias: number;
+    }>();
+
     const procesarCarrier = (c: BaseCarrierStats) => {
       const vel = c.velocidadDias === 0 ? 0 : Math.max(1.1, c.velocidadDias + prodVelMod);
       const dev = Math.min(99, Math.max(3, c.devolucionPct + prodDevMod + comDevMod));
+      const guias = c.guiasEstimadas || 100;
       
       const prev = agrupado.get(c.transportadora);
       if (prev) {
         prev.sumVel += vel;
         prev.sumDev += dev;
         prev.count += 1;
+        prev.totalGuias += guias;
       } else {
-        agrupado.set(c.transportadora, { sumVel: vel, sumDev: dev, count: 1 });
+        agrupado.set(c.transportadora, { sumVel: vel, sumDev: dev, count: 1, totalGuias: guias });
       }
     };
 
@@ -260,29 +255,71 @@ export default function TransportadorasPage() {
       }
     }
 
+    // Calibración con filteredData si existen registros reales
+    const records = Array.isArray(filteredData) ? filteredData : [];
+    if (records.length > 0) {
+      const realCounts: Record<string, number> = {};
+      records.forEach((row: any) => {
+        const transRaw = String(row.transportadora || row.Transportadora || '').toUpperCase().trim();
+        const deptoRaw = String(row.departamento || row.Departamento || '').trim();
+        const ciudadRaw = String(row.ciudad || row.Ciudad || '').trim();
+
+        const matchDepto = selectedDepto === '(Todos)' || deptoRaw.toLowerCase().includes(selectedDepto.toLowerCase());
+        const matchCiudad = selectedCiudad === '(Todas)' || ciudadRaw.toLowerCase().includes(selectedCiudad.toLowerCase());
+
+        if (matchDepto && matchCiudad) {
+          Object.keys(CARRIER_BENCHMARKS_BASE).forEach((k) => {
+            if (transRaw.includes(k)) {
+              const canonical = CARRIER_BENCHMARKS_BASE[k].nombre;
+              realCounts[canonical] = (realCounts[canonical] || 0) + 1;
+            }
+          });
+        }
+      });
+
+      agrupado.forEach((val, carrierName) => {
+        if (realCounts[carrierName] && realCounts[carrierName] > 0) {
+          val.totalGuias = realCounts[carrierName];
+        }
+      });
+    }
+
     return Array.from(agrupado.entries()).map(([transportadora, stats]) => {
       const vel = stats.sumVel / stats.count;
       const dev = stats.sumDev / stats.count;
+
+      // REGLA DE ACCIÓN:
+      // Rentable: <= 15% | Seguimiento: > 15% y <= 30% | Intervención: > 30%
       let accion: 'Rentable' | 'Seguimiento' | 'Intervención' = 'Rentable';
-      if (dev >= 25.0) accion = 'Intervención';
-      else if (dev >= 8.0) accion = 'Seguimiento';
+      if (dev > 30.0) {
+        accion = 'Intervención';
+      } else if (dev > 15.0) {
+        accion = 'Seguimiento';
+      } else {
+        accion = 'Rentable';
+      }
 
       return {
         transportadora,
-        velocidad: `${vel.toFixed(1)} dias`,
+        totalGuias: stats.totalGuias,
+        velocidad: `${vel.toFixed(1)} días`,
         devolucion: `${dev.toFixed(1)}%`,
         accion,
         _devRaw: dev
       };
     }).sort((a, b) => a._devRaw - b._devRaw);
-  }, [selectedDepto, selectedCiudad, selectedProducto, selectedComunidad]);
+  }, [selectedDepto, selectedCiudad, selectedProducto, selectedComunidad, filteredData]);
+
+  const totalGuiasSeleccion = useMemo(() => {
+    return tableRows.reduce((acc, cur) => acc + cur.totalGuias, 0);
+  }, [tableRows]);
 
   if (loading) {
     return <div className="p-8 flex justify-center text-slate-500 font-sans">Cargando métricas de transportadoras...</div>;
   }
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] text-slate-800 p-6 font-sans relative space-y-6">
+    <div className="min-h-screen bg-[#F8FAFC] text-slate-800 p-6 lg:p-8 font-sans relative space-y-6">
       
       {/* Toast Flotante */}
       {notification && (
@@ -304,7 +341,7 @@ export default function TransportadorasPage() {
           <div>
             <h1 className="text-2xl font-black text-slate-900 tracking-tight">Transportadoras</h1>
             <p className="text-xs text-slate-500 mt-0.5">
-              Contrasta la operación propia del proveedor contra el mercado para identificar ineficiencias internas o fallas generales de la transportadora.
+              Auditoría acumulada de transportadoras, velocidad de entrega y tasa de devolución contrastada contra el mercado nacional.
             </p>
           </div>
 
@@ -319,86 +356,48 @@ export default function TransportadorasPage() {
         </div>
       </div>
 
-      {/* 2. TARJETAS COMPARATIVAS (3 KPIS CLAVE) */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {/* 2. BLOQUE DUAL PRINCIPAL (50% / 50%) */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start w-full">
         
-        {/* TIEMPO PROMEDIO */}
-        <div className="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-2xs flex flex-col justify-between">
-          <div>
-            <span className="text-[11px] font-bold tracking-wider text-slate-500 uppercase block mb-1">
-              TIEMPO PROMEDIO DE ENTREGA
-            </span>
-            <p className="text-3xl lg:text-4xl font-black text-[#f97316] tracking-tight">
-              {resTransportadoras.tarjetasKpi.tiempoPromedioEntrega} Días
-            </p>
-          </div>
-          <p className="text-xs text-slate-500 mt-3 font-medium">
-            Mi Cuenta: <strong className="text-slate-700">{resTransportadoras.tarjetasKpi.tiempoPromedioEntrega} días</strong> • Promedio Nacional: {resTransportadoras.tarjetasKpi.promedioNacionalEntrega} días
-          </p>
-        </div>
+        {/* PANEL IZQUIERDO: RANKING DESTINO CON TRANSPORTADORAS ACUMULADAS */}
+        <div className="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-2xs space-y-5 w-full">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+            <div>
+              <div className="flex items-center gap-2">
+                <Truck size={18} className="text-[#FA7C16]" />
+                <h2 className="text-base font-bold text-slate-900 tracking-tight">
+                  Ranking de Rentabilidad por Destino
+                </h2>
+              </div>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Muestra las transportadoras acumuladas según el cruce de filtros activos.
+              </p>
+            </div>
 
-        {/* MAYOR EFECTIVIDAD */}
-        <div className="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-2xs flex flex-col justify-between">
-          <div>
-            <span className="text-[11px] font-bold tracking-wider text-slate-500 uppercase block mb-1">
-              MAYOR EFECTIVIDAD ({resTransportadoras.tarjetasKpi.mejorTransportadora.nombre})
-            </span>
-            <p className="text-3xl lg:text-4xl font-black text-[#f97316] tracking-tight">
-              {resTransportadoras.tarjetasKpi.mejorTransportadora.efectividad}%
-            </p>
-          </div>
-          <p className="text-xs text-slate-500 mt-3 font-medium">
-            Supera la media nacional (71.2%)
-          </p>
-        </div>
+            <div className="flex items-center gap-2 self-start sm:self-center">
+              <span 
+                className="px-3 py-1 rounded-xl text-xs font-black shrink-0"
+                style={{ backgroundColor: '#FFF7ED', color: '#EA580C', border: '1px solid #FFEDD5' }}
+              >
+                {totalGuiasSeleccion.toLocaleString('es-CO')} Guías
+              </span>
 
-        {/* MENOR EFECTIVIDAD */}
-        <div className="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-2xs flex flex-col justify-between">
-          <div>
-            <span className="text-[11px] font-bold tracking-wider text-slate-500 uppercase block mb-1">
-              MENOR EFECTIVIDAD ({resTransportadoras.tarjetasKpi.peorTransportadora.nombre})
-            </span>
-            <p className="text-3xl lg:text-4xl font-black text-[#f97316] tracking-tight">
-              {resTransportadoras.tarjetasKpi.peorTransportadora.efectividad}%
-            </p>
-          </div>
-          <p className="text-xs text-slate-500 mt-3 font-medium">
-            Promedio Nacional de referencia: 64.0%
-          </p>
-        </div>
-
-      </div>
-
-      {/* 3. BLOQUE DUAL PRINCIPAL */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
-        
-        {/* PANEL IZQUIERDO: RANKING DESTINO */}
-        <div className="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-2xs space-y-5">
-          <div>
-            <h2 className="text-base font-bold text-slate-900 tracking-tight">
-              Ranking de Rentabilidad por Destino
-            </h2>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Cruza Ciudad, Departamento y Producto para ver la mejor transportadora.
-            </p>
-
-            {/* BOTÓN COLOCADO DEBAJO DE RANKING DE RENTABILIDAD POR DESTINO */}
-            <div className="mt-3">
               <button
                 type="button"
                 onClick={() => {
                   setNotification('Reporte generado exitosamente para tiendas dropshippers');
                   setTimeout(() => setNotification(null), 3500);
                 }}
-                className="bg-white border border-slate-300 hover:border-orange-400 hover:text-orange-600 text-slate-700 font-semibold px-4 py-2 rounded-xl flex items-center gap-2 shadow-2xs text-xs transition-all active:scale-95 cursor-pointer w-fit"
+                className="bg-white border border-slate-300 hover:border-orange-400 hover:text-orange-600 text-slate-700 font-semibold px-3.5 py-1.5 rounded-xl flex items-center gap-1.5 shadow-2xs text-xs transition-all active:scale-95 cursor-pointer shrink-0"
+                title="Compartir ranking con tiendas"
               >
-                <Share2 size={14} className="text-orange-500" />
-                <span>Compartir Ranking con Tiendas</span>
+                <Share2 size={13} className="text-orange-500" />
+                <span className="hidden sm:inline">Compartir</span>
               </button>
             </div>
           </div>
 
-          {/* Grilla 2x2 de selectores */}
+          {/* Grilla limpia de 4 selectores (2x2) */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             
             <div className="flex flex-col gap-1">
@@ -434,22 +433,6 @@ export default function TransportadorasPage() {
             </div>
 
             <div className="flex flex-col gap-1">
-              <label className="text-[11px] text-slate-500 font-medium ml-0.5">Producto</label>
-              <div className="relative">
-                <select
-                  value={selectedProducto}
-                  onChange={(e) => setSelectedProducto(e.target.value)}
-                  className="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-700 shadow-2xs outline-none hover:border-slate-400 focus:border-slate-500 appearance-none pr-8 cursor-pointer transition-colors truncate"
-                >
-                  {PRODUCTOS_LIST.map((p) => (
-                    <option key={p} value={p}>{p}</option>
-                  ))}
-                </select>
-                <ChevronDown size={14} className="text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-1">
               <label className="text-[11px] text-slate-500 font-medium ml-0.5">Comunidad</label>
               <div className="relative">
                 <select
@@ -465,9 +448,25 @@ export default function TransportadorasPage() {
               </div>
             </div>
 
+            <div className="flex flex-col gap-1">
+              <label className="text-[11px] text-slate-500 font-medium ml-0.5">Producto</label>
+              <div className="relative">
+                <select
+                  value={selectedProducto}
+                  onChange={(e) => setSelectedProducto(e.target.value)}
+                  className="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-700 shadow-2xs outline-none hover:border-slate-400 focus:border-slate-500 appearance-none pr-8 cursor-pointer transition-colors truncate"
+                >
+                  {PRODUCTOS_LIST.map((p) => (
+                    <option key={p} value={p}>{p}</option>
+                  ))}
+                </select>
+                <ChevronDown size={14} className="text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+              </div>
+            </div>
+
           </div>
 
-          {/* Tabla de Ranking Local */}
+          {/* Tabla de Ranking Local / Acumulado */}
           <div className="overflow-x-auto rounded-xl border border-slate-200">
             <table className="w-full text-left border-collapse text-xs">
               <thead>
@@ -482,14 +481,19 @@ export default function TransportadorasPage() {
                 {tableRows.length === 0 ? (
                   <tr>
                     <td colSpan={4} className="py-8 text-center text-slate-400 font-medium">
-                      No hay registros para este destino.
+                      No hay registros acumulados para la combinación de filtros seleccionada.
                     </td>
                   </tr>
                 ) : (
                   tableRows.map((row) => (
                     <tr key={row.transportadora} className="hover:bg-slate-50/70 transition-colors">
                       <td className="py-3.5 px-4 font-bold text-slate-800">
-                        {row.transportadora}
+                        <div>
+                          <span>{row.transportadora}</span>
+                          <span className="text-[10px] text-slate-400 font-normal block">
+                            {row.totalGuias.toLocaleString('es-CO')} guías
+                          </span>
+                        </div>
                       </td>
                       <td className="py-3.5 px-3 text-center text-slate-600 font-medium">
                         {row.velocidad}
@@ -514,10 +518,15 @@ export default function TransportadorasPage() {
               </tbody>
             </table>
           </div>
+
+          <div className="flex flex-wrap items-center justify-between gap-2 pt-1 text-[11px] text-slate-400">
+            <span><strong>Rentable:</strong> &le; 15% | <strong>Seguimiento:</strong> 15% - 30% | <strong>Intervención:</strong> &gt; 30%</span>
+            <span>* Consolidado en tiempo real</span>
+          </div>
         </div>
 
         {/* PANEL DERECHO: BENCHMARKING NACIONAL */}
-        <div className="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-2xs space-y-4">
+        <div className="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-2xs space-y-4 w-full">
           <div>
             <h2 className="text-base font-bold text-slate-900 tracking-tight">
               Benchmarking Nacional de Transportadoras
@@ -533,9 +542,14 @@ export default function TransportadorasPage() {
 
               return (
                 <div key={c.nombre} className="space-y-1">
-                  <span className="text-[13px] font-bold text-slate-800 block">
-                    {c.nombre}
-                  </span>
+                  <div className="flex justify-between items-center">
+                    <span className="text-[13px] font-bold text-slate-800 block">
+                      {c.nombre}
+                    </span>
+                    <span className="text-[10.5px] text-slate-400 font-medium">
+                      {c.totalGuias > 0 ? `${c.totalGuias.toLocaleString('es-CO')} guías auditadas` : ''}
+                    </span>
+                  </div>
 
                   <div className="flex items-center gap-3">
                     <span className="text-[11px] text-slate-400 w-28 shrink-0">Mi Tasa</span>

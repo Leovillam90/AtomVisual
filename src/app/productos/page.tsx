@@ -3,14 +3,14 @@
 
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { 
-  Search, SlidersHorizontal, User, Phone, Mail, MessageSquare, 
-  Copy, Check, MapPin, Store, ExternalLink,
-  CornerDownRight, X, ChevronDown, Eye, EyeOff
+  Search, SlidersHorizontal, Store,
+  CornerDownRight, X, ChevronDown, Eye, EyeOff, Download
 } from 'lucide-react';
 import { useFiltrosCruzados } from '@/hooks/useFiltrosCruzados';
 import { agruparMetricasPorProducto } from '@/formulas';
 import { FiltroFecha } from '@/filtros/FiltroFecha';
 import { BarraFiltrosSecundarios } from '@/filtros/BarraFiltrosSecundarios';
+import * as XLSX from 'xlsx';
 
 export default function PantallaProductos() {
   const {
@@ -100,6 +100,128 @@ export default function PantallaProductos() {
     return formatted;
   };
 
+  // ==========================================
+  // FUNCIÓN DE DESCARGA BLINDADA (Límite 32.767 chars)
+  // ==========================================
+  const exportarLiquidacionProductos = () => {
+    try {
+      if (!filteredData || filteredData.length === 0) {
+        alert('No hay órdenes registradas para el periodo seleccionado.');
+        return;
+      }
+
+      // 1. Filtrar únicamente pedidos entregados en el periodo
+      const entregados = filteredData.filter((row: any) => {
+        const tipoRaw = String(row.tipoEstado || row['Tipo de estado'] || row.estado || '').toUpperCase().trim();
+        const estadoRaw = String(row.estado || row.estadoGuia || '').toUpperCase().trim();
+        const isDevolucion = tipoRaw.includes('DEVOLU') || estadoRaw.includes('DEVOLU') || tipoRaw.includes('DEVUELT');
+        return !isDevolucion && (tipoRaw.includes('ENTREG') || tipoRaw.includes('FINALIZ') || estadoRaw.includes('ENTREG'));
+      });
+
+      if (entregados.length === 0) {
+        alert('No se encontraron pedidos entregados en el periodo seleccionado.');
+        return;
+      }
+
+      // 2. Agrupar por producto acumulando guías únicas, unidades y valor proveedor
+      const mapaProductos: Record<string, { guias: Set<string>; cantidad: number; valorProveedor: number }> = {};
+
+      entregados.forEach((row: any) => {
+        const prodName = String(row.producto || row.Producto || row.nombreProducto || 'Sin Producto').trim();
+        const guia = String(row.numeroGuia || row.guia || row.Guia || row['Número de guía'] || row['Numero de guia'] || '').trim();
+        
+        const cantRaw = row.cantidad ?? row.Cantidad ?? row['Productos (cantidad)'] ?? 1;
+        const cant = typeof cantRaw === 'number' ? cantRaw : parseInt(String(cantRaw), 10) || 1;
+
+        let recaudo = row.recaudoProveedor ?? row['Recaudo proveedor'] ?? row.recaudoBod ?? row.recaudo ?? row.total ?? 0;
+        if (typeof recaudo === 'string') {
+          let s = recaudo.replace('$', '').replace(/\s/g, '');
+          if (s.includes('.') && s.includes(',')) s = s.replace(/\./g, '').replace(',', '.');
+          else if (s.includes(',')) s = s.replace(',', '.');
+          recaudo = parseFloat(s) || 0;
+        }
+
+        if (!mapaProductos[prodName]) {
+          mapaProductos[prodName] = {
+            guias: new Set<string>(),
+            cantidad: 0,
+            valorProveedor: 0,
+          };
+        }
+
+        if (guia) {
+          mapaProductos[prodName].guias.add(guia);
+        }
+        mapaProductos[prodName].cantidad += cant;
+        mapaProductos[prodName].valorProveedor += Number(recaudo) || 0;
+      });
+
+      // 3. Particionar guías respetando el límite estricto de Excel (<32.000 caracteres por celda)
+      const MAX_CHARS_CELDA = 32000;
+      const filas: any[] = [];
+
+      Object.entries(mapaProductos).forEach(([producto, data]) => {
+        const guiasArr = Array.from(data.guias);
+        const bloquesGuias: string[] = [];
+        let bloqueActual: string[] = [];
+        let longitudActual = 0;
+
+        guiasArr.forEach((g) => {
+          const longGuia = g.length + (bloqueActual.length > 0 ? 2 : 0);
+          if (longitudActual + longGuia > MAX_CHARS_CELDA) {
+            bloquesGuias.push(bloqueActual.join(', '));
+            bloqueActual = [g];
+            longitudActual = g.length;
+          } else {
+            bloqueActual.push(g);
+            longitudActual += longGuia;
+          }
+        });
+
+        if (bloqueActual.length > 0) {
+          bloquesGuias.push(bloqueActual.join(', '));
+        }
+
+        // Si cabe en una celda
+        if (bloquesGuias.length <= 1) {
+          filas.push({
+            'Producto': producto,
+            'Guías': bloquesGuias[0] || '-',
+            'Cantidad': data.cantidad,
+            'Valor Proveedor': data.valorProveedor,
+          });
+        } else {
+          // Si supera el límite de caracteres de Excel, se divide en partes correlativas
+          bloquesGuias.forEach((bloque, idx) => {
+            filas.push({
+              'Producto': idx === 0 ? producto : `${producto} (Cont. Parte ${idx + 1})`,
+              'Guías': bloque,
+              'Cantidad': idx === 0 ? data.cantidad : 0,
+              'Valor Proveedor': idx === 0 ? data.valorProveedor : 0,
+            });
+          });
+        }
+      });
+
+      // 4. Generar y exportar el libro Excel
+      const worksheet = XLSX.utils.json_to_sheet(filas);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Liquidación Productos');
+
+      worksheet['!cols'] = [
+        { wch: 38 },
+        { wch: 60 },
+        { wch: 12 },
+        { wch: 18 },
+      ];
+
+      XLSX.writeFile(workbook, `Liquidacion_Productos_${dateFrom || 'Inicio'}_a_${dateTo || 'Fin'}.xlsx`);
+    } catch (err: any) {
+      console.error('Error al exportar liquidación:', err);
+      alert(`No fue posible generar el archivo: ${err?.message || 'Error desconocido'}`);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-[#F8FAFC] p-8 flex items-center justify-center text-xs text-slate-500 font-sans">
@@ -110,6 +232,7 @@ export default function PantallaProductos() {
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] text-slate-800 p-6 font-sans relative space-y-5">
+      {/* CABECERA PRINCIPAL */}
       <div className="flex justify-between items-end mb-4 flex-wrap gap-3">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Productos</h1>
@@ -143,7 +266,8 @@ export default function PantallaProductos() {
         setSelectedComunidades={setSelectedComunidades}
       />
 
-      <div className="flex gap-3 relative">
+      {/* FILA DE BÚSQUEDA CON BOTÓN DE DESCARGA A LA DERECHA */}
+      <div className="flex gap-3 relative items-center">
         <div className="flex-1 relative">
           <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
@@ -157,6 +281,17 @@ export default function PantallaProductos() {
             className="w-full bg-white border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-xs text-slate-700 placeholder-slate-400 shadow-xs outline-none hover:border-slate-300 focus:border-slate-400 transition-colors"
           />
         </div>
+
+        {/* BOTÓN DESCARGAR LIQUIDACIÓN AL LADO DERECHO DEL BUSCADOR */}
+        <button
+          type="button"
+          onClick={exportarLiquidacionProductos}
+          className="bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-700 px-3.5 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 transition-colors shadow-2xs cursor-pointer shrink-0"
+          title="Descargar Excel con Producto, Guías, Cantidad y Valor Proveedor"
+        >
+          <Download size={14} strokeWidth={2.3} />
+          <span>Descargar Liquidación</span>
+        </button>
 
         <div className="relative inline-block" ref={columnSelectorRef}>
           <button 
@@ -494,6 +629,7 @@ export default function PantallaProductos() {
           </tbody>
         </table>
 
+        {/* PAGINACIÓN */}
         <div className="flex items-center justify-between px-6 py-3.5 bg-white border-t border-slate-200 text-xs text-slate-500 font-sans">
           <div className="flex items-center gap-2">
             <span className="text-slate-600">Filas por página</span>
