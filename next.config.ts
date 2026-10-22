@@ -1,9 +1,7 @@
 // next.config.ts
 import type { NextConfig } from "next";
 
-const nextConfig: NextConfig = {
-  cacheComponents: true,
-  partialPrefetching: true,
+const nextConfig = {
   turbopack: {
     rules: {
       "*.css": {
@@ -12,6 +10,6 @@ const nextConfig: NextConfig = {
       },
     },
   },
-};
+} as unknown as NextConfig;
 
 export default nextConfig;
