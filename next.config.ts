@@ -2,7 +2,16 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Opciones de configuración limpias para Next.js 16
+  cacheComponents: true,
+  partialPrefetching: true,
+  turbopack: {
+    rules: {
+      "*.css": {
+        loaders: ["@tailwindcss/turbopack"],
+        as: "*.css",
+      },
+    },
+  },
 };
 
 export default nextConfig;
