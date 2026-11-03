@@ -17,7 +17,7 @@ export default function RootLayout({
       <body className="bg-[#F8FAFC] antialiased">
         <div className="flex min-h-screen w-full">
           {/* Sidebar compatible tanto con position="left" como sin props */}
-          <Sidebar position="left" />
+          <Sidebar />
 
           {/* Contenedor principal fluido */}
           <main className="flex-1 min-w-0 overflow-x-hidden">
