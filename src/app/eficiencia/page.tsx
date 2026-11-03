@@ -7,7 +7,7 @@ import { useFiltrosCruzados } from '@/hooks/useFiltrosCruzados';
 import FiltroFecha from '@/filtros/FiltroFecha';
 
 // Importación de módulos del directorio /rendimiento
-import * as RawScoreModule from './score';
+import * as RawScoreModule from './Score';
 import * as RawRendimientoModule from './Rendimiento';
 import * as RawImpactoModule from './ImpactoFinanciero';
 import * as RawScannerModule from './IntegridadScanner';
