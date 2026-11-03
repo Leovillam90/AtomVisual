@@ -70,13 +70,14 @@ const PLANES_DISPONIBLES: Plan[] = [
 ];
 
 export default function PlanesPage() {
-  const [planActivo, setPlanActivo] = useState<'basico' | 'control_total' | null>('control_total');
-  const [renovacionAutomatica, setRenovacionAutomatica] = useState<boolean>(true);
+  // Inicialización inactiva por defecto para la demostración
+  const [planActivo, setPlanActivo] = useState<'basico' | 'control_total' | null>(null);
+  const [renovacionAutomatica, setRenovacionAutomatica] = useState<boolean>(false);
   
   // Fechas de vigencia del ciclo de suscripción
-  const [fechaInicio, setFechaInicio] = useState<string>('01 Nov 2026');
-  const [fechaFin, setFechaFin] = useState<string>('01 Dic 2026');
-  const [diasRestantes, setDiasRestantes] = useState<number>(22);
+  const [fechaInicio, setFechaInicio] = useState<string>('03 Nov 2026');
+  const [fechaFin, setFechaFin] = useState<string>('03 Dic 2026');
+  const [diasRestantes, setDiasRestantes] = useState<number>(30);
 
   // Modales
   const [modalContratar, setModalContratar] = useState<Plan | null>(null);
@@ -88,9 +89,12 @@ export default function PlanesPage() {
     const planGuardado = localStorage.getItem('atom_plan_activo');
     const renovacionGuardada = localStorage.getItem('atom_renovacion_activa');
 
-    if (planGuardado) {
-      setPlanActivo(planGuardado === 'null' ? null : (planGuardado as 'basico' | 'control_total'));
+    if (planGuardado && planGuardado !== 'null') {
+      setPlanActivo(planGuardado as 'basico' | 'control_total');
+    } else {
+      setPlanActivo(null);
     }
+
     if (renovacionGuardada !== null) {
       setRenovacionAutomatica(renovacionGuardada === 'true');
     }
@@ -117,7 +121,7 @@ export default function PlanesPage() {
       localStorage.setItem('atom_plan_activo', modalContratar.id);
       localStorage.setItem('atom_renovacion_activa', 'true');
 
-      // Emisión del evento en vivo para actualizar el Sidebar al instante
+      // Emisión del evento en vivo para actualizar Sidebar y vistas comerciales
       window.dispatchEvent(new Event('atom_plan_updated'));
 
       setProcesandoPago(false);
@@ -134,7 +138,7 @@ export default function PlanesPage() {
     localStorage.setItem('atom_plan_activo', 'null');
     localStorage.setItem('atom_renovacion_activa', 'false');
 
-    // Emisión del evento en vivo para actualizar el Sidebar al instante
+    // Emisión del evento en vivo para actualizar Sidebar y vistas comerciales
     window.dispatchEvent(new Event('atom_plan_updated'));
 
     setModalDesactivar(false);

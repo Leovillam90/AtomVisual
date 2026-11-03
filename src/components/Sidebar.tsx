@@ -34,6 +34,7 @@ const MENU_ITEMS_BASE: MenuItem[] = [
   { nombre: 'Detalle de Guías', ruta: '/detalle-guias', icono: PackageSearch },
   { nombre: 'Negocios', ruta: '/negocios', icono: Store, requierePlan: true },
   { nombre: 'Productos', ruta: '/productos', icono: Package, requierePlan: true },
+  { nombre: 'Conexiones', ruta: '/conexiones', icono: Package, requierePlan: true },
   { nombre: 'Transportadoras', ruta: '/transportadoras', icono: Truck },
   
   { nombre: 'Planes de Suscripción', ruta: '/planes', icono: CreditCard, badge: 'Pack' },
