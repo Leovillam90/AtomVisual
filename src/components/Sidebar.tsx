@@ -1,179 +1,204 @@
 // src/components/Sidebar.tsx
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, ShieldCheck, UserCog } from 'lucide-react';
+import { 
+  Menu, 
+  ShieldCheck, 
+  CreditCard,
+  BellRing, 
+  TrendingUp, 
+  PackageSearch, 
+  Store, 
+  Package, 
+  Truck,
+  ChevronLeft,
+  ChevronRight
+} from 'lucide-react';
 
 interface MenuItem {
   nombre: string;
   ruta: string;
-  esEspecial?: boolean;
-  esAdmin?: boolean;
+  icono: React.ElementType;
+  badge?: string;
+  requierePlan?: boolean; // Condición para ocultar si el plan está inactivo
 }
 
-const MENU_ATOM: MenuItem[] = [
-  { nombre: 'Eficiencia logística', ruta: '/rendimiento' },
-  { nombre: 'Panel de alertas', ruta: '/alertas' },
-  { nombre: 'Detalle de Guías', ruta: '/detalle-guias' },
-  { nombre: 'Negocios', ruta: '/negocios' },
-  { nombre: 'Productos', ruta: '/productos' },
-  { nombre: 'Transportadoras', ruta: '/transportadoras' },
-  // Rutas administrativas (Admin Supremo apunta directo a /Administrador)
-  { nombre: 'Admin Supremo', ruta: '/Administrador', esAdmin: true }
+const MENU_ITEMS_BASE: MenuItem[] = [
+  
+  { nombre: 'Administrador (Agentes)', ruta: '/control', icono: ShieldCheck },
+  { nombre: 'Panel de alertas', ruta: '/alertas', icono: BellRing },
+  { nombre: 'Eficiencia logística', ruta: '/eficiencia', icono: TrendingUp },
+  { nombre: 'Detalle de Guías', ruta: '/detalle-guias', icono: PackageSearch },
+  { nombre: 'Negocios', ruta: '/negocios', icono: Store, requierePlan: true },
+  { nombre: 'Productos', ruta: '/productos', icono: Package, requierePlan: true },
+  { nombre: 'Transportadoras', ruta: '/transportadoras', icono: Truck },
+  
+  { nombre: 'Planes de Suscripción', ruta: '/planes', icono: CreditCard, badge: 'Pack' },
 ];
 
-interface SidebarProps {
-  position?: 'left' | 'right';
-}
-
-export default function Sidebar({ position = 'left' }: SidebarProps) {
+export default function Sidebar() {
   const pathname = usePathname();
-  const [colapsado, setColapsado] = useState(false);
+  const [colapsado, setColapsado] = useState<boolean>(false);
+  const [tienePlanActivo, setTienePlanActivo] = useState<boolean>(true);
 
-  // Normalización de rutas para evitar fallos de mayúsculas/minúsculas
+  // Sincronización en tiempo real con localStorage (estado de /planes)
+  const verificarEstadoPlan = () => {
+    try {
+      const planGuardado = localStorage.getItem('atom_plan_activo');
+      // Si no existe, es null o string 'null', el plan está inactivo
+      const activo = planGuardado !== null && planGuardado !== 'null' && planGuardado !== '';
+      setTienePlanActivo(activo);
+    } catch {
+      setTienePlanActivo(false);
+    }
+  };
+
+  useEffect(() => {
+    verificarEstadoPlan();
+
+    // Escucha cambios inter-pestañas y eventos personalizados de actualización
+    const handleActualizacion = () => verificarEstadoPlan();
+    window.addEventListener('storage', handleActualizacion);
+    window.addEventListener('atom_plan_updated', handleActualizacion);
+    window.addEventListener('atom_tools_updated', handleActualizacion);
+
+    return () => {
+      window.removeEventListener('storage', handleActualizacion);
+      window.removeEventListener('atom_plan_updated', handleActualizacion);
+      window.removeEventListener('atom_tools_updated', handleActualizacion);
+    };
+  }, []);
+
+  // Filtrar los módulos que requieren plan activo
+  const menuItemsVisibles = MENU_ITEMS_BASE.filter((item) => {
+    if (item.requierePlan && !tienePlanActivo) {
+      return false; // Se oculta Negocios y Productos si no hay plan
+    }
+    return true;
+  });
+
   const pathnameNorm = (pathname || '').toLowerCase();
-
-  // Índice del primer elemento administrativo para dibujar el separador una sola vez
-  const primerIndiceAdmin = MENU_ATOM.findIndex((item) => item.esAdmin);
 
   return (
     <aside 
-      className={`bg-white border-r border-slate-100 flex flex-col shrink-0 select-none transition-all duration-300 min-h-screen ${
-        colapsado ? 'w-[72px]' : 'w-[230px]'
+      className={`bg-white border-r border-slate-200 flex flex-col shrink-0 select-none transition-all duration-300 min-h-screen sticky top-0 h-screen z-40 ${
+        colapsado ? 'w-[72px]' : 'w-[250px]'
       }`}
     >
-      {/* CABECERA: LOGO DROPI & BOTÓN HAMBURGUESA */}
-      <div className="h-16 flex items-center justify-between px-4 border-b border-slate-50">
-        {!colapsado && (
-          <Link href="/rendimiento" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-[#FFF0E0] border border-[#FDD9B5] flex items-center justify-center">
-              <div className="w-6 h-6 rounded-full bg-[#FA7C16] flex items-center justify-center gap-0.5">
+      {/* CABECERA: LOGO DROPI Y BOTÓN DE COLAPSO */}
+      <div className="h-16 flex items-center justify-between px-4 border-b border-slate-100">
+        {!colapsado ? (
+          <Link href="/control" className="flex items-center gap-2 group">
+            <div className="w-8 h-8 rounded-full bg-[#FFF0E0] border border-[#FDD9B5] flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-105">
+              <div className="w-5 h-5 rounded-full bg-[#FA7C16] flex items-center justify-center gap-0.5">
                 <span className="w-1 h-1 bg-white rounded-full" />
                 <span className="w-1 h-1 bg-white rounded-full" />
               </div>
             </div>
-            <span className="text-2xl font-black text-[#F58220] tracking-tight lowercase">
-              dropi
-            </span>
-          </Link>
-        )}
-
-        {colapsado && (
-          <div className="mx-auto w-8 h-8 rounded-full bg-[#FFF0E0] border border-[#FDD9B5] flex items-center justify-center">
-            <div className="w-6 h-6 rounded-full bg-[#FA7C16] flex items-center justify-center gap-0.5">
-              <span className="w-1 h-1 bg-white rounded-full" />
-              <span className="w-1 h-1 bg-white rounded-full" />
+            <div className="flex flex-col">
+              <span className="text-xl font-black text-[#FA7C16] tracking-tight leading-none lowercase">
+                AGENTES
+              </span>
+              <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-tight">
+                ATOM IA
+              </span>
             </div>
-          </div>
+          </Link>
+        ) : (
+          <Link href="/control" className="mx-auto">
+            <div className="w-8 h-8 rounded-full bg-[#FFF0E0] border border-[#FDD9B5] flex items-center justify-center shrink-0 hover:scale-105 transition-transform">
+              <div className="w-5 h-5 rounded-full bg-[#FA7C16] flex items-center justify-center gap-0.5">
+                <span className="w-1 h-1 bg-white rounded-full" />
+                <span className="w-1 h-1 bg-white rounded-full" />
+              </div>
+            </div>
+          </Link>
         )}
 
         <button
           type="button"
           onClick={() => setColapsado((prev) => !prev)}
-          className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
+          className={`p-1.5 rounded-xl text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition-colors cursor-pointer ${
+            colapsado ? 'mt-3 mx-auto' : ''
+          }`}
           title={colapsado ? 'Expandir menú' : 'Colapsar menú'}
         >
-          <Menu size={18} strokeWidth={2.2} />
+          {colapsado ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
         </button>
       </div>
 
-      {/* CONTENEDOR DE NAVEGACIÓN */}
-      <div className="flex-1 py-5 px-3 flex flex-col justify-between overflow-y-auto">
-        <div className="space-y-4">
-          
-          {/* TÍTULO ATOM + BADGE NUEVO */}
-          <div className={`flex items-center gap-2 px-2 ${colapsado ? 'justify-center' : ''}`}>
-            <div className="text-slate-900 shrink-0">
-              <svg 
-                width="18" 
-                height="18" 
-                viewBox="0 0 24 24" 
-                fill="none" 
-                stroke="currentColor" 
-                strokeWidth="2.2" 
-                strokeLinecap="round" 
-                strokeLinejoin="round"
+      {/* NAVEGACIÓN PRINCIPAL DINÁMICA */}
+      <div className="flex-1 py-4 px-3 flex flex-col justify-between overflow-y-auto">
+        <nav className="space-y-1">
+          {menuItemsVisibles.map((item) => {
+            const Icono = item.icono;
+            const estaActivo = 
+              pathnameNorm === item.ruta || 
+              (pathnameNorm === '/' && item.ruta === '/control');
+
+            return (
+              <Link
+                key={item.ruta}
+                href={item.ruta}
+                title={colapsado ? item.nombre : undefined}
+                className={`group flex items-center transition-all duration-200 rounded-xl text-xs font-bold ${
+                  colapsado ? 'justify-center p-3' : 'py-2.5 px-3 gap-3'
+                } ${
+                  estaActivo
+                    ? 'bg-orange-50 text-[#FA7C16] shadow-2xs font-extrabold'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                }`}
               >
-                <circle cx="12" cy="12" r="3" />
-                <ellipse cx="12" cy="12" rx="9" ry="4" transform="rotate(0 12 12)" />
-                <ellipse cx="12" cy="12" rx="9" ry="4" transform="rotate(60 12 12)" />
-                <ellipse cx="12" cy="12" rx="9" ry="4" transform="rotate(120 12 12)" />
-              </svg>
-            </div>
-
-            {!colapsado && (
-              <>
-                <span className="text-sm font-black text-slate-900 tracking-tight">
-                  ATOM
-                </span>
-                <span className="bg-[#42C797] text-white font-extrabold text-[9.5px] px-2 py-0.5 rounded-md tracking-wider">
-                  NUEVO
-                </span>
-              </>
-            )}
-          </div>
-
-          {/* LISTA DE ÍTEMS DEL MENÚ */}
-          <nav className="space-y-1">
-            {MENU_ATOM.map((item, idx) => {
-              const itemRutaNorm = item.ruta.toLowerCase();
-              const estaActivo = pathnameNorm === itemRutaNorm;
-              const esPrimerAdmin = idx === primerIndiceAdmin;
-
-              const esAdminSupremo = 
-                itemRutaNorm === '/administrador' || 
-                itemRutaNorm === '/administrador/supremo';
-              const esAdminNormal = 
-                itemRutaNorm === '/administrador/normal';
-
-              return (
-                <React.Fragment key={item.ruta}>
-                  {/* Separador dinámico antes de los módulos administrativos */}
-                  {esPrimerAdmin && !colapsado && (
-                    <div className="pt-3 pb-1 px-2 border-t border-slate-100 mt-2">
-                      <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider">
-                        Administración
-                      </span>
-                    </div>
+                <div className="relative shrink-0 flex items-center justify-center">
+                  <Icono 
+                    size={18} 
+                    strokeWidth={estaActivo ? 2.5 : 2} 
+                    className={`transition-transform duration-300 group-hover:scale-110 ${
+                      estaActivo ? 'text-[#FA7C16]' : 'text-slate-500 group-hover:text-slate-800'
+                    }`} 
+                  />
+                  {estaActivo && colapsado && (
+                    <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-[#FA7C16]" />
                   )}
+                </div>
 
-                  <Link
-                    href={item.ruta}
-                    title={item.nombre}
-                    className={`block text-xs transition-colors rounded-xl font-medium ${
-                      colapsado ? 'text-center py-2.5 px-1 truncate' : 'py-2 px-3'
-                    } ${
-                      estaActivo
-                        ? 'bg-[#FFF7ED] text-[#FA7C16] font-black'
-                        : item.esAdmin
-                        ? 'text-slate-700 hover:text-slate-900 hover:bg-slate-50 font-semibold'
-                        : item.esEspecial
-                        ? 'text-[#94A3B8] hover:text-slate-600'
-                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                    }`}
-                  >
-                    <span className="truncate flex items-center gap-2">
-                      {esAdminNormal && !colapsado && (
-                        <UserCog size={13} className="text-blue-500 shrink-0" />
-                      )}
-                      {esAdminSupremo && !colapsado && (
-                        <ShieldCheck size={13} className="text-purple-600 shrink-0" />
-                      )}
-                      <span className="truncate">{item.nombre}</span>
-                    </span>
-                  </Link>
-                </React.Fragment>
-              );
-            })}
-          </nav>
-        </div>
+                {!colapsado && (
+                  <div className="flex items-center justify-between flex-1 min-w-0">
+                    <span className="truncate">{item.nombre}</span>
+                    {item.badge && (
+                      <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-orange-100 text-orange-800">
+                        {item.badge}
+                      </span>
+                    )}
+                  </div>
+                )}
+              </Link>
+            );
+          })}
+        </nav>
 
-        {/* PIE DEL SIDEBAR */}
-        {!colapsado && (
-          <div className="pt-4 border-t border-slate-100 text-[10.5px] text-slate-400 text-center font-medium">
-            <span>ATOM Solutions © 2026</span>
+        {/* PIE DEL MENÚ CON INDICADOR DE ESTADO DE PLAN */}
+        {!colapsado ? (
+          <div className="pt-4 border-t border-slate-100 px-2 space-y-1">
+            <div className="flex items-center justify-between text-[11px] font-bold text-slate-500">
+              <span>Suscripción</span>
+              <span className={`font-black ${tienePlanActivo ? 'text-emerald-600' : 'text-amber-600'}`}>
+                {tienePlanActivo ? 'Activa' : 'Inactiva'}
+              </span>
+            </div>
+            <p className="text-[10px] text-slate-400 font-mono">
+              ATOM Agentico IA © 2026
+            </p>
+          </div>
+        ) : (
+          <div className="pt-3 border-t border-slate-100 flex justify-center">
+            <span 
+              className={`w-2 h-2 rounded-full ${tienePlanActivo ? 'bg-emerald-500' : 'bg-amber-500'}`} 
+              title={tienePlanActivo ? 'Suscripción Activa' : 'Suscripción Inactiva'} 
+            />
           </div>
         )}
       </div>

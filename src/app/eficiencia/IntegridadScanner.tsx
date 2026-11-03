@@ -1,4 +1,4 @@
-// src/app/eficiencia/IntegridadScanner.tsx
+// src/app/eficiencia/IntegridadScanner.tsx (o src/app/rendimiento/IntegridadScanner.tsx)
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -38,13 +38,13 @@ export default function IntegridadScanner({ data }: IntegridadScannerProps) {
     };
   }, [showTooltip]);
 
-  // Valores dinámicos con respaldo fiel a la captura de referencia
+  // Valores dinámicos con umbral elevado al 95%
   const usoGlobal = data?.usoGlobalPct ?? 95.4;
   const salidas = data?.salidasPct ?? 99.7;
   const devoluciones = data?.devolucionesPct ?? 78.0;
 
-  const umbralSalidas = data?.umbralSalidas ?? 80;
-  const umbralDevoluciones = data?.umbralDevoluciones ?? 70;
+  const umbralSalidas = data?.umbralSalidas ?? 95;
+  const umbralDevoluciones = data?.umbralDevoluciones ?? 95;
 
   const salidasPaquetes = data?.salidasConteo ?? { actual: 992, total: 995 };
   const devolucionesPaquetes = data?.devolucionesConteo ?? { actual: 71, total: 91 };
@@ -158,7 +158,7 @@ export default function IntegridadScanner({ data }: IntegridadScannerProps) {
         </p>
       </div>
 
-      {/* 2. TARJETA CONTENEDORA BLANCA PANORÁMICA EXACTA */}
+      {/* 2. TARJETA CONTENEDORA BLANCA PANORÁMICA */}
       <div 
         className="bg-white border p-6 lg:p-7 shadow-xs space-y-5"
         style={{ 
@@ -168,7 +168,7 @@ export default function IntegridadScanner({ data }: IntegridadScannerProps) {
         }}
       >
         
-        {/* FILA SUPERIOR: USO GLOBAL + BADGE BENEFICIOS ACTIVOS */}
+        {/* FILA SUPERIOR: USO GLOBAL + BADGE BENEFICIOS */}
         <div className="flex items-center justify-between pb-4 border-b border-slate-100">
           <div className="flex items-baseline gap-2.5">
             <span 
@@ -182,7 +182,7 @@ export default function IntegridadScanner({ data }: IntegridadScannerProps) {
             </span>
           </div>
 
-          {/* Pastilla ✓ Beneficios activos */}
+          {/* Pastilla de estado de beneficios */}
           <div 
             className="px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1.5 shadow-2xs"
             style={{ 
@@ -213,7 +213,7 @@ export default function IntegridadScanner({ data }: IntegridadScannerProps) {
               </span>
             </div>
 
-            {/* Barra de progreso continua con marcador vertical del umbral */}
+            {/* Barra de progreso continua con marcador vertical del umbral a 95% */}
             <div 
               style={{
                 width: '100%',
@@ -234,7 +234,7 @@ export default function IntegridadScanner({ data }: IntegridadScannerProps) {
                 }}
               />
               
-              {/* Notcha vertical indicadora del umbral */}
+              {/* Notcha vertical indicadora del umbral (95%) */}
               <div 
                 style={{
                   position: 'absolute',
@@ -277,7 +277,7 @@ export default function IntegridadScanner({ data }: IntegridadScannerProps) {
               </span>
             </div>
 
-            {/* Barra de progreso continua con marcador vertical del umbral */}
+            {/* Barra de progreso continua con marcador vertical del umbral a 95% */}
             <div 
               style={{
                 width: '100%',
@@ -298,7 +298,7 @@ export default function IntegridadScanner({ data }: IntegridadScannerProps) {
                 }}
               />
 
-              {/* Notcha vertical indicadora del umbral */}
+              {/* Notcha vertical indicadora del umbral (95%) */}
               <div 
                 style={{
                   position: 'absolute',
@@ -334,3 +334,5 @@ export default function IntegridadScanner({ data }: IntegridadScannerProps) {
     </section>
   );
 }
+
+export { IntegridadScanner };
