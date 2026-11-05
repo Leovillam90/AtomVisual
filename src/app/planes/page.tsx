@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 
 interface Plan {
-  id: 'basico' | 'control_total';
+  id: 'rescatista' | 'experto' | 'control_total';
   nombre: string;
   tagline: string;
   precioCOP: string;
@@ -31,55 +31,62 @@ interface Plan {
 
 const PLANES_DISPONIBLES: Plan[] = [
   {
-    id: 'basico',
-    nombre: 'Pack Básico Rescatista',
-    tagline: 'Movilización prioritaria y consolidado diario matutino.',
-    precioCOP: '$ 250.000 COP',
-    precioUSD: '85 USD',
+    id: 'rescatista',
+    nombre: 'Plan Rescatista',
+    tagline: 'Movilización prioritaria y reportes diarios del negocio.',
+    precioCOP: '$ 276.000 COP', // Valor estimado a ~4.000 COP
+    precioUSD: '69 USD',
     cupoGuias: 1500,
     beneficios: [
-      'Hasta 1.500 guías auditadas por mes',
-      'Tool 1: Cobranza CAS Cierre Logístico (+30D)',
-      'Tool 2: Cobranza CAS Cierre de Novedad (+10D)',
-      'Tool 3: Rescatista de Movilización (+3D)',
-      'Tool 4: Reporte Diario de Rendimiento (09:30 AM)',
-      'Tool 5: Auditoría Devoluciones (+7D)',
+      'Agente de Movilización de Guías Estancadas (+3 Días)',
+      'Agente de Notificaciones de Novedades sin Solución',
+      'Agente de Reporte Diario del Negocio',
       'Soporte operativo vía ticket Dropi',
       'ATOM academia'
     ]
   },
   {
-    id: 'control_total',
-    nombre: 'Pack Control Total',
-    tagline: 'Operación autónoma completa y radicaciones CAS legales.',
-    precioCOP: '$ 350.000 COP',
-    precioUSD: '100 USD',
-    cupoGuias: 5000,
+    id: 'experto',
+    nombre: 'Plan Experto',
+    tagline: 'Cierres logísticos, auditoría y protección financiera.',
+    precioCOP: '$ 396.000 COP', // Valor estimado a ~4.000 COP
+    precioUSD: '99 USD',
+    cupoGuias: 3000,
     destacado: true,
     beneficios: [
-      'Hasta 5.000 guías auditadas por mes',
-      'Desbloqueo de módulos de Productos y Negocios',
-      'Tools 1 al 5 incluidas con encendido/apagado libre',
-      'Radicación jurídica formal CAS automática ante transportadoras',
-      'Habilitación para activar Tools Ofensivas (6 al 10) por demanda',
-      'Soporte operativo vía ticket Dropi',
-      'ATOM academia',
-      'Asesoría Empresarial'
+      'Todo lo incluido en el Plan Rescatista',
+      'Agente de Cierre de Novedad (+10 Días)',
+      'Agente de Cierre Logístico (+30 Días)',
+      'Agente de Auditoría de Devoluciones No Ingresadas (+7 Días)',
+      'Agente de Escudo Financiero de Márgenes'
+    ]
+  },
+  {
+    id: 'control_total',
+    nombre: 'Plan Control Total',
+    tagline: 'Inteligencia avanzada, expansión y predicción de stock.',
+    precioCOP: '$ 596.000 COP', // Valor estimado a ~4.000 COP
+    precioUSD: '149 USD',
+    cupoGuias: 5000,
+    beneficios: [
+      'Todo lo incluido en el Plan Experto',
+      'Agente de Conexiones Inteligente con Sellers',
+      'Agente Liquidador de Capital Muerto con Sellers',
+      'Agente Rotura de Stock',
+      'Agente Predictivo de Importación (Demanda Inducida)',
+      'Agente Explorador de Mercados (Expansión Territorial)'
     ]
   }
 ];
 
 export default function PlanesPage() {
-  // Inicialización inactiva por defecto para la demostración
-  const [planActivo, setPlanActivo] = useState<'basico' | 'control_total' | null>(null);
+  const [planActivo, setPlanActivo] = useState<'rescatista' | 'experto' | 'control_total' | null>(null);
   const [renovacionAutomatica, setRenovacionAutomatica] = useState<boolean>(false);
   
-  // Fechas de vigencia del ciclo de suscripción
   const [fechaInicio, setFechaInicio] = useState<string>('03 Nov 2026');
   const [fechaFin, setFechaFin] = useState<string>('03 Dic 2026');
   const [diasRestantes, setDiasRestantes] = useState<number>(30);
 
-  // Modales
   const [modalContratar, setModalContratar] = useState<Plan | null>(null);
   const [autorizaDescuento, setAutorizaDescuento] = useState<boolean>(false);
   const [procesandoPago, setProcesandoPago] = useState<boolean>(false);
@@ -90,7 +97,7 @@ export default function PlanesPage() {
     const renovacionGuardada = localStorage.getItem('atom_renovacion_activa');
 
     if (planGuardado && planGuardado !== 'null') {
-      setPlanActivo(planGuardado as 'basico' | 'control_total');
+      setPlanActivo(planGuardado as 'rescatista' | 'experto' | 'control_total');
     } else {
       setPlanActivo(null);
     }
@@ -117,11 +124,9 @@ export default function PlanesPage() {
       setFechaFin('03 Dic 2026');
       setDiasRestantes(30);
 
-      // Persistencia en localStorage
       localStorage.setItem('atom_plan_activo', modalContratar.id);
       localStorage.setItem('atom_renovacion_activa', 'true');
 
-      // Emisión del evento en vivo para actualizar Sidebar y vistas comerciales
       window.dispatchEvent(new Event('atom_plan_updated'));
 
       setProcesandoPago(false);
@@ -134,11 +139,9 @@ export default function PlanesPage() {
     setRenovacionAutomatica(false);
     setPlanActivo(null);
 
-    // Persistencia en localStorage
     localStorage.setItem('atom_plan_activo', 'null');
     localStorage.setItem('atom_renovacion_activa', 'false');
 
-    // Emisión del evento en vivo para actualizar Sidebar y vistas comerciales
     window.dispatchEvent(new Event('atom_plan_updated'));
 
     setModalDesactivar(false);
@@ -147,7 +150,7 @@ export default function PlanesPage() {
   return (
     <div className="min-h-screen bg-[#F8FAFC] text-slate-700 p-6 lg:p-10 font-sans space-y-7">
       
-      {/* CABECERA (CON INDICADOR DE VIGENCIA Y DÍAS RESTANTES) */}
+      {/* CABECERA */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-200">
         <div>
           <div className="flex items-center gap-3">
@@ -174,7 +177,6 @@ export default function PlanesPage() {
           </p>
         </div>
 
-        {/* INDICADOR DE FECHA DE VIGENCIA Y DÍAS FALTANTES */}
         {planActivo && (
           <div className="bg-white border border-slate-200 px-4 py-2.5 rounded-2xl shadow-2xs flex items-center gap-3 self-start md:self-auto">
             <div className="w-8 h-8 rounded-xl bg-orange-50 text-[#FA7C16] flex items-center justify-center">
@@ -209,8 +211,9 @@ export default function PlanesPage() {
             </div>
             
             <p className="text-xl font-extrabold text-slate-800 tracking-tight">
-              {planActivo === 'control_total' && 'Pack Control Total ($ 350.000 COP / 100 USD)'}
-              {planActivo === 'basico' && 'Pack Básico Rescatista ($ 250.000 COP / 85 USD)'}
+              {planActivo === 'control_total' && 'Plan Control Total ($ 596.000 COP / 149 USD)'}
+              {planActivo === 'experto' && 'Plan Experto ($ 396.000 COP / 99 USD)'}
+              {planActivo === 'rescatista' && 'Plan Rescatista ($ 276.000 COP / 69 USD)'}
               {!planActivo && 'No tienes un plan activo actualmente'}
             </p>
 
@@ -256,7 +259,7 @@ export default function PlanesPage() {
       </div>
 
       {/* TARJETAS DE PLANES CON TEXTOS Y BENEFICIOS */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {PLANES_DISPONIBLES.map((plan) => {
           const esPlanActual = planActivo === plan.id;
 
@@ -284,18 +287,16 @@ export default function PlanesPage() {
                   </p>
                 </div>
 
-                <div className="p-4 bg-slate-50 border border-slate-100 rounded-2xl flex items-baseline justify-between">
-                  <div>
+                <div className="p-4 bg-slate-50 border border-slate-100 rounded-2xl flex flex-col justify-center">
+                  <div className="flex items-baseline">
                     <span className="text-xl font-extrabold text-slate-800 font-mono">
-                      {plan.precioCOP}
+                      {plan.precioUSD}
                     </span>
                     <span className="text-xs font-bold text-slate-500 ml-1.5">
-                      / {plan.precioUSD}
+                      / mes
                     </span>
                   </div>
-                  <span className="text-xs font-extrabold text-slate-700 bg-white border border-slate-200 px-2.5 py-1 rounded-lg">
-                    {plan.cupoGuias.toLocaleString('es-CO')} Guías / mes
-                  </span>
+                  <span className="text-[11px] text-slate-500 mt-1">{plan.precioCOP} (Aprox)</span>
                 </div>
 
                 <div className="space-y-2.5 pt-2">
@@ -338,7 +339,7 @@ export default function PlanesPage() {
         })}
       </div>
 
-      {/* MODAL ACTIVACIÓN CON AUTORIZACIÓN DE DESCUENTO AUTOMÁTICO EN WALLET */}
+      {/* MODAL ACTIVACIÓN */}
       {modalContratar && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
           <div className="bg-white border border-slate-200 rounded-[28px] p-6 lg:p-7 max-w-lg w-full shadow-2xl space-y-5 animate-in fade-in zoom-in-95 duration-150">
@@ -370,12 +371,8 @@ export default function PlanesPage() {
               <div className="flex justify-between items-baseline">
                 <span className="text-xs font-bold text-orange-950 uppercase">Tarifa Mensual Recurrente</span>
                 <span className="text-xl font-extrabold text-[#FA7C16] font-mono">
-                  {modalContratar.precioCOP} <span className="text-xs text-orange-800 font-sans">({modalContratar.precioUSD})</span>
+                  {modalContratar.precioUSD} <span className="text-xs text-orange-800 font-sans">({modalContratar.precioCOP})</span>
                 </span>
-              </div>
-              <div className="flex justify-between items-center text-xs text-orange-900 pt-1 border-t border-orange-200/50">
-                <span>Cupo de auditoría incluido:</span>
-                <span className="font-bold">{modalContratar.cupoGuias.toLocaleString('es-CO')} Guías / mes</span>
               </div>
             </div>
 
@@ -402,7 +399,7 @@ export default function PlanesPage() {
                 className="mt-0.5 w-4 h-4 text-orange-600 rounded cursor-pointer" 
               />
               <span className="text-xs font-medium text-slate-700 leading-relaxed">
-                <strong>Autorización de descuento automático:</strong> Autorizo formalmente a Dropi y ATOM IA a descontar mensualmente el valor de <strong>{modalContratar.precioCOP}</strong> directamente del saldo de mi Wallet Dropi al inicio de cada ciclo de 30 días. Entiendo que puedo desactivar esta suscripción en cualquier momento.
+                <strong>Autorización de descuento automático:</strong> Autorizo formalmente a Dropi y ATOM IA a descontar mensualmente el valor de <strong>{modalContratar.precioUSD}</strong> directamente del saldo de mi Wallet Dropi al inicio de cada ciclo de 30 días. Entiendo que puedo desactivar esta suscripción en cualquier momento.
               </span>
             </label>
 

@@ -20,10 +20,11 @@ import {
   Eye,
   Send,
   X,
-  DollarSign,
   PackageCheck,
   Check,
-  ShoppingBag
+  ShoppingBag,
+  Sparkles,
+  Lock
 } from 'lucide-react';
 
 export interface PropuestaComercial {
@@ -189,12 +190,11 @@ const CONEXIONES_INICIALES: Conexion[] = [
 ];
 
 export default function ConexionesPage() {
-  const [tienePlanValido, setTienePlanValido] = useState<boolean>(true);
+  const [planActivo, setPlanActivo] = useState<'rescatista' | 'experto' | 'control_total' | null>(null);
   const [conexiones, setConexiones] = useState<Conexion[]>(CONEXIONES_INICIALES);
   const [filtroEstado, setFiltroEstado] = useState<'TODAS' | 'VENDIENDO' | 'ACEPTADA' | 'ENVIADA' | 'POR_ENVIAR'>('TODAS');
   const [busqueda, setBusqueda] = useState('');
   
-  // Modal de visualización y envío de propuesta
   const [conexionSeleccionada, setConexionSeleccionada] = useState<Conexion | null>(null);
   const [enviandoPitch, setEnviandoPitch] = useState<boolean>(false);
   const [mensajeExito, setMensajeExito] = useState<string | null>(null);
@@ -202,7 +202,11 @@ export default function ConexionesPage() {
   useEffect(() => {
     const verificarPlan = () => {
       const planGuardado = localStorage.getItem('atom_plan_activo');
-      setTienePlanValido(planGuardado !== null && planGuardado !== 'null' && planGuardado !== '');
+      if (planGuardado && planGuardado !== 'null' && planGuardado !== '') {
+        setPlanActivo(planGuardado as 'rescatista' | 'experto' | 'control_total');
+      } else {
+        setPlanActivo(null);
+      }
     };
     
     verificarPlan();
@@ -215,7 +219,16 @@ export default function ConexionesPage() {
     };
   }, []);
 
+  // Lógica de acceso: Conexiones requiere plan Control Total.
+  // Si no se tiene, funciona como vitrina interactiva bloqueada.
+  const tienePlanControlTotal = planActivo === 'control_total';
+
   const handleEnviarPropuesta = (conexionId: string) => {
+    if (!tienePlanControlTotal) {
+      alert("Para enviar esta propuesta necesitas el Plan Control Total.");
+      return;
+    }
+
     setEnviandoPitch(true);
 
     setTimeout(() => {
@@ -236,7 +249,6 @@ export default function ConexionesPage() {
         })
       );
 
-      // Si el modal está abierto, sincronizar el objeto visible
       setConexionSeleccionada((prev) => {
         if (!prev || prev.id !== conexionId) return prev;
         return {
@@ -255,7 +267,6 @@ export default function ConexionesPage() {
     }, 650);
   };
 
-  // Filtrado de la lista
   const conexionesFiltradas = useMemo(() => {
     return conexiones.filter((c) => {
       const pasaFiltroEstado = 
@@ -273,16 +284,15 @@ export default function ConexionesPage() {
     });
   }, [conexiones, filtroEstado, busqueda]);
 
-  // Contadores para el embudo de acuerdos
   const conteoVendiendo = conexiones.filter((c) => c.estado === 'Vendiendo').length;
   const conteoAceptadas = conexiones.filter((c) => c.estado === 'Aceptada').length;
   const conteoEnviadas = conexiones.filter((c) => c.estado === 'Enviada').length;
   const conteoPorEnviar = conexiones.filter((c) => c.estado === 'Por Enviar').length;
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] text-slate-800 p-4 sm:p-6 lg:p-8 font-sans space-y-7">
+    <div className="min-h-screen bg-[#F8FAFC] text-slate-800 p-4 sm:p-6 lg:p-8 font-sans space-y-7 relative">
       
-      {/* CABECERA PRINCIPAL */}
+      {/* CABECERA PRINCIPAL CON ESTADO DE PLAN */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-200">
         <div>
           <div className="flex items-center gap-3">
@@ -290,14 +300,14 @@ export default function ConexionesPage() {
               Gestión de Acuerdos y Conexiones Comerciales
             </h1>
             <span className={`font-extrabold text-[10.5px] px-2.5 py-0.5 rounded-full uppercase tracking-wider border flex items-center gap-1.5 ${
-              tienePlanValido 
+              tienePlanControlTotal 
                 ? 'bg-purple-50 text-purple-700 border-purple-200' 
                 : 'bg-amber-50 text-amber-800 border-amber-200'
             }`}>
-              {tienePlanValido ? (
+              {tienePlanControlTotal ? (
                 <><Zap size={10} className="fill-purple-500" /> Match Making Activo</>
               ) : (
-                'Agentes en Pausa'
+                <><Lock size={10} className="text-amber-600" /> Requiere Plan Control Total</>
               )}
             </span>
           </div>
@@ -314,46 +324,50 @@ export default function ConexionesPage() {
             <CheckCircle2 size={16} className="text-emerald-600 shrink-0" />
             <span>{mensajeExito}</span>
           </div>
-          <button type="button" onClick={() => setMensajeExito(null)} className="text-emerald-600 hover:text-emerald-900">
+          <button type="button" onClick={() => setMensajeExito(null)} className="text-emerald-600 hover:text-emerald-900 cursor-pointer">
             <X size={14} />
           </button>
         </div>
       )}
 
-      {/* BANNER SI NO HAY PLAN */}
-      {!tienePlanValido && (
+      {/* BANNER VITRINA SI NO TIENE CONTROL TOTAL */}
+      {!tienePlanControlTotal && (
         <div className="bg-gradient-to-r from-amber-50 via-orange-50/50 to-white border border-amber-200 rounded-[24px] p-5 sm:p-6 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div className="flex items-start gap-4">
             <div className="w-11 h-11 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0 border border-amber-200">
-              <AlertTriangle size={20} />
+              <Sparkles size={20} />
             </div>
             <div className="space-y-1">
               <span className="text-[10px] font-black uppercase tracking-wider text-amber-800 bg-amber-100 px-2 py-0.5 rounded border border-amber-200">
-                Funcionalidad Limitada
+                Módulo Exclusivo
               </span>
               <h2 className="text-base sm:text-lg font-black text-slate-800 tracking-tight">
-                Tus agentes de conexión comercial están en pausa
+                Escala tus ventas con Sellers Élite (Agentes Comerciales)
               </h2>
               <p className="text-xs text-slate-600 leading-relaxed max-w-3xl">
-                Al activar tu plan, los agentes <strong>Headhunter</strong> y <strong>Liquidador</strong> generan y negocian automáticamente propuestas con los Sellers más efectivos de Dropi para mover tu inventario.
+                Al activar el <strong>Plan Control Total</strong>, la IA analiza tu catálogo y negocia automáticamente con los vendedores más efectivos de la plataforma para distribuir tu mercancía. Explora debajo una demostración real de los matches generados para ti.
               </p>
             </div>
           </div>
 
           <Link
             href="/planes"
-            className="bg-[#FA7C16] hover:bg-[#EA580C] text-white px-5 py-2.5 rounded-xl text-xs font-black shadow-xs transition-colors flex items-center gap-2 shrink-0 cursor-pointer"
+            className="bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 px-5 py-2.5 rounded-xl text-xs font-black shadow-xs transition-colors flex items-center gap-2 shrink-0 cursor-pointer"
           >
-            <span>Activar Plan</span>
+            <span>Hacer Upgrade a Control Total</span>
             <ArrowRight size={14} />
           </Link>
         </div>
       )}
 
       {/* EMBUDO DE KPIS COMERCIALES */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        
-        {/* KPI 1: VENDIENDO ACTUALMENTE */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 relative">
+        {/* Overlay bloqueador visual ligero si no hay plan control total */}
+        {!tienePlanControlTotal && (
+           <div className="absolute inset-0 bg-slate-50/20 backdrop-blur-[1px] z-10 rounded-2xl pointer-events-none border border-slate-200/50" />
+        )}
+
+        {/* KPI 1 */}
         <div 
           onClick={() => setFiltroEstado('VENDIENDO')}
           className={`bg-white border rounded-2xl p-5 shadow-2xs space-y-3 cursor-pointer transition-all hover:scale-[1.01] ${
@@ -375,7 +389,7 @@ export default function ConexionesPage() {
           </div>
         </div>
 
-        {/* KPI 2: ACEPTARON LA PROPUESTA */}
+        {/* KPI 2 */}
         <div 
           onClick={() => setFiltroEstado('ACEPTADA')}
           className={`bg-white border rounded-2xl p-5 shadow-2xs space-y-3 cursor-pointer transition-all hover:scale-[1.01] ${
@@ -397,7 +411,7 @@ export default function ConexionesPage() {
           </div>
         </div>
 
-        {/* KPI 3: PROPUESTAS ENVIADAS EN ESPERA */}
+        {/* KPI 3 */}
         <div 
           onClick={() => setFiltroEstado('ENVIADA')}
           className={`bg-white border rounded-2xl p-5 shadow-2xs space-y-3 cursor-pointer transition-all hover:scale-[1.01] ${
@@ -419,7 +433,7 @@ export default function ConexionesPage() {
           </div>
         </div>
 
-        {/* KPI 4: LISTAS PARA ENVIAR (MATCHES IA) */}
+        {/* KPI 4 */}
         <div 
           onClick={() => setFiltroEstado('POR_ENVIAR')}
           className={`bg-white border rounded-2xl p-5 shadow-2xs space-y-3 cursor-pointer transition-all hover:scale-[1.01] ${
@@ -440,14 +454,18 @@ export default function ConexionesPage() {
             <p className="text-xs text-slate-500 font-medium mt-1">Ofertas generadas listas para aprobar</p>
           </div>
         </div>
-
       </div>
 
       {/* CONTENEDOR PRINCIPAL: FILTROS Y LISTADO */}
-      <div className="bg-white border border-slate-200/90 rounded-[26px] p-6 shadow-xs space-y-5">
+      <div className="bg-white border border-slate-200/90 rounded-[26px] p-6 shadow-xs space-y-5 relative">
         
-        {/* BARRA SUPERIOR: BUSCADOR Y TABS DEL EMBUDO */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-slate-100">
+        {/* Overlay ligero sobre el listado si no tiene el plan */}
+        {!tienePlanControlTotal && (
+           <div className="absolute inset-0 bg-gradient-to-t from-slate-50/70 to-transparent pointer-events-none z-10 rounded-[26px]" />
+        )}
+
+        {/* BARRA SUPERIOR */}
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-slate-100 relative z-20">
           <div className="relative w-full max-w-sm">
             <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
             <input 
@@ -508,8 +526,8 @@ export default function ConexionesPage() {
           </div>
         </div>
 
-        {/* LISTADO DE TARJETAS DE CONEXIÓN CON ACCIÓN DE PROPUESTA */}
-        <div className="space-y-3.5">
+        {/* LISTADO DE TARJETAS DE CONEXIÓN */}
+        <div className="space-y-3.5 relative z-20">
           {conexionesFiltradas.length > 0 ? (
             conexionesFiltradas.map((conexion) => {
               const estaVendiendo = conexion.estado === 'Vendiendo';
@@ -528,7 +546,6 @@ export default function ConexionesPage() {
                       : 'border-slate-200 bg-white hover:border-orange-300/80 hover:shadow-md'
                   }`}
                 >
-                  {/* COLUMNA 1: DATOS DEL SELLER */}
                   <div className="flex items-start sm:items-center gap-3.5 min-w-[260px]">
                     <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 border ${
                       estaVendiendo 
@@ -549,7 +566,6 @@ export default function ConexionesPage() {
                         )}
                       </div>
                       
-                      {/* BADGE DE ESTADO ACTUAL DEL ACUERDO */}
                       <div className="flex items-center gap-2">
                         <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md border flex items-center gap-1 ${
                           estaVendiendo
@@ -570,7 +586,6 @@ export default function ConexionesPage() {
                     </div>
                   </div>
 
-                  {/* COLUMNA 2: PRODUCTO ASIGNADO & ORIGEN DEL AGENTE */}
                   <div className="flex-1 border-t lg:border-t-0 lg:border-l border-slate-100 pt-3 lg:pt-0 lg:pl-5 space-y-1.5">
                     <div className="flex items-center gap-2">
                       <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Producto:</span>
@@ -588,7 +603,7 @@ export default function ConexionesPage() {
                         {conexion.tipoMatch}
                       </span>
                       <span className="text-[11px] text-slate-500">
-                        Margen ofrecido: <strong className="text-slate-800">{conexion.propuesta.margenEstimadoSellerPct}%</strong>
+                        Margen: <strong className="text-slate-800">{conexion.propuesta.margenEstimadoSellerPct}%</strong>
                       </span>
                       <span className="text-[11px] text-slate-500">
                         Reserva: <strong className="text-slate-800">{conexion.propuesta.stockReservadoUnd} und</strong>
@@ -596,18 +611,17 @@ export default function ConexionesPage() {
                     </div>
                   </div>
 
-                  {/* COLUMNA 3: MÉTRICAS DE VENTAS O PROYECCIÓN */}
                   <div className="border-t lg:border-t-0 lg:border-l border-slate-100 pt-3 lg:pt-0 lg:pl-5 min-w-[170px] space-y-1">
                     {estaVendiendo ? (
                       <div>
                         <span className="text-[10px] uppercase font-bold text-emerald-700 tracking-wider block">
-                          Ventas Reales Generadas
+                          Ventas Generadas
                         </span>
                         <p className="text-base font-black text-emerald-700 font-mono">
                           {conexion.ventasRealesGeneradas}
                         </p>
                         <span className="text-[10.5px] text-slate-500 font-medium block">
-                          {conexion.unidadesVendidas} unidades despachadas
+                          {conexion.unidadesVendidas} despachadas
                         </span>
                       </div>
                     ) : (
@@ -625,56 +639,51 @@ export default function ConexionesPage() {
                     )}
                   </div>
 
-                  {/* COLUMNA 4: BOTONES DE ACCIÓN (VER PROPUESTA / ENVIAR) */}
                   <div className="border-t lg:border-t-0 lg:border-l border-slate-100 pt-3 lg:pt-0 lg:pl-5 flex items-center gap-2 justify-end">
-                    
-                    {/* Botón Ver Propuesta (Siempre disponible para auditar qué se le ofreció) */}
                     <button
                       type="button"
                       onClick={() => setConexionSeleccionada(conexion)}
                       className="px-3.5 py-2 rounded-xl text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-200 transition-colors flex items-center gap-1.5 cursor-pointer shadow-2xs"
-                      title="Ver propuesta comercial completa"
                     >
                       <Eye size={14} />
                       <span>Ver Propuesta</span>
                     </button>
 
-                    {/* Botón Enviar Propuesta si aún está por enviar */}
                     {estaPorEnviar && (
                       <button
                         type="button"
                         onClick={() => handleEnviarPropuesta(conexion.id)}
-                        disabled={enviandoPitch}
-                        className="px-4 py-2 rounded-xl text-xs font-black text-white bg-[#FA7C16] hover:bg-[#EA580C] transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs"
+                        disabled={enviandoPitch || !tienePlanControlTotal}
+                        className={`px-4 py-2 rounded-xl text-xs font-black text-white transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs ${
+                          tienePlanControlTotal ? 'bg-[#FA7C16] hover:bg-[#EA580C]' : 'bg-slate-400 cursor-not-allowed'
+                        }`}
                       >
-                        <Send size={13} />
+                        {tienePlanControlTotal ? <Send size={13} /> : <Lock size={13} />}
                         <span>Enviar</span>
                       </button>
                     )}
 
-                    {/* Botón Reenviar si ya fue enviada pero sigue pendiente */}
                     {estaEnviada && (
                       <button
                         type="button"
                         onClick={() => handleEnviarPropuesta(conexion.id)}
-                        disabled={enviandoPitch}
-                        className="px-3 py-2 rounded-xl text-xs font-bold text-orange-700 bg-orange-50 hover:bg-orange-100 border border-orange-200 transition-colors flex items-center gap-1.5 cursor-pointer"
-                        title="Reenviar notificación al Seller"
+                        disabled={enviandoPitch || !tienePlanControlTotal}
+                        className={`px-3 py-2 rounded-xl text-xs font-bold border transition-colors flex items-center gap-1.5 cursor-pointer ${
+                          tienePlanControlTotal ? 'text-orange-700 bg-orange-50 hover:bg-orange-100 border-orange-200' : 'text-slate-400 bg-slate-50 border-slate-200 cursor-not-allowed'
+                        }`}
                       >
-                        <Send size={12} />
+                        {tienePlanControlTotal ? <Send size={12} /> : <Lock size={12} />}
                         <span>Reenviar</span>
                       </button>
                     )}
-
                   </div>
-
                 </div>
               );
             })
           ) : (
             <div className="text-center py-12 bg-slate-50 border border-slate-200 border-dashed rounded-2xl space-y-2">
               <Search size={26} className="mx-auto text-slate-300" />
-              <p className="text-xs font-bold text-slate-600">No se encontraron conexiones en este estado.</p>
+              <p className="text-xs font-bold text-slate-600">No se encontraron conexiones.</p>
               <button 
                 type="button" 
                 onClick={() => { setFiltroEstado('TODAS'); setBusqueda(''); }} 
@@ -688,14 +697,11 @@ export default function ConexionesPage() {
 
       </div>
 
-      {/* ============================================================== */}
-      {/* MODAL DETALLADO: VER Y ENVIAR PROPUESTA COMERCIAL FORMAL      */}
-      {/* ============================================================== */}
+      {/* MODAL DETALLADO: VER Y ENVIAR PROPUESTA */}
       {conexionSeleccionada && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
           <div className="bg-white border border-slate-200 rounded-[28px] max-w-2xl w-full shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150 flex flex-col max-h-[90vh]">
             
-            {/* Header del Modal */}
             <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/60">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-2xl bg-[#FA7C16]/10 text-[#FA7C16] border border-[#FA7C16]/20 flex items-center justify-center font-bold">
@@ -725,10 +731,8 @@ export default function ConexionesPage() {
               </button>
             </div>
 
-            {/* Cuerpo del Modal */}
             <div className="p-6 overflow-y-auto space-y-5 text-slate-700">
               
-              {/* ESTADO DE LA PROPUESTA */}
               <div className="flex items-center justify-between p-3.5 rounded-2xl border bg-slate-50 border-slate-200">
                 <div className="space-y-0.5">
                   <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Estado Actual</span>
@@ -747,7 +751,6 @@ export default function ConexionesPage() {
                 )}
               </div>
 
-              {/* TÉRMINOS ECONÓMICOS DE LA PROPUESTA */}
               <div className="space-y-2">
                 <span className="text-[11px] font-black uppercase tracking-wider text-slate-400">
                   Condiciones Financieras Sugeridas
@@ -777,7 +780,6 @@ export default function ConexionesPage() {
                 </div>
               </div>
 
-              {/* PITCH GENERADO POR IA */}
               <div className="space-y-2">
                 <span className="text-[11px] font-black uppercase tracking-wider text-slate-400">
                   Texto del Pitch Comercial (Enviado al Seller)
@@ -787,9 +789,7 @@ export default function ConexionesPage() {
                 </div>
               </div>
 
-              {/* CONDICIONES OPERATIVAS Y RECURSOS */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                
                 <div className="p-4 rounded-2xl border border-slate-200 space-y-2 bg-white">
                   <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">
                     Compromisos de Tu Bodega
@@ -797,7 +797,7 @@ export default function ConexionesPage() {
                   <div className="space-y-1.5 text-xs">
                     <div className="flex items-center gap-2">
                       <PackageCheck size={14} className="text-[#FA7C16]" />
-                      <span>Stock reservado: <strong>{conexionSeleccionada.propuesta.stockReservadoUnd} unidades</strong></span>
+                      <span>Stock reservado: <strong>{conexionSeleccionada.propuesta.stockReservadoUnd} unds</strong></span>
                     </div>
                     <div className="flex items-center gap-2">
                       <Clock size={14} className="text-[#FA7C16]" />
@@ -819,12 +819,10 @@ export default function ConexionesPage() {
                     ))}
                   </ul>
                 </div>
-
               </div>
 
             </div>
 
-            {/* Footer con Acciones */}
             <div className="p-5 border-t border-slate-100 bg-slate-50/60 flex items-center justify-between">
               <button 
                 type="button" 
@@ -835,7 +833,15 @@ export default function ConexionesPage() {
               </button>
 
               <div className="flex items-center gap-2">
-                {conexionSeleccionada.estado === 'Por Enviar' ? (
+                {!tienePlanControlTotal ? (
+                  <Link 
+                    href="/planes"
+                    className="bg-amber-100 hover:bg-amber-200 text-amber-900 px-5 py-2.5 rounded-xl text-xs font-black shadow-xs flex items-center gap-2 cursor-pointer border border-amber-300"
+                  >
+                    <Lock size={14} />
+                    <span>Mejorar a Control Total</span>
+                  </Link>
+                ) : conexionSeleccionada.estado === 'Por Enviar' ? (
                   <button 
                     type="button" 
                     disabled={enviandoPitch}

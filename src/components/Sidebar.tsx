@@ -27,16 +27,14 @@ interface MenuItem {
 }
 
 const MENU_ITEMS_BASE: MenuItem[] = [
-  
   { nombre: 'Administrador (Agentes)', ruta: '/control', icono: ShieldCheck },
   { nombre: 'Panel de alertas', ruta: '/alertas', icono: BellRing },
   { nombre: 'Eficiencia logística', ruta: '/eficiencia', icono: TrendingUp },
   { nombre: 'Detalle de Guías', ruta: '/detalle-guias', icono: PackageSearch },
   { nombre: 'Negocios', ruta: '/negocios', icono: Store, requierePlan: true },
-  { nombre: 'Productos', ruta: '/productos', icono: Package, requierePlan: true },
+  { nombre: 'Productos', ruta: '/productos', icono: Package }, // Disponible libre/gratis sin plan
   { nombre: 'Conexiones', ruta: '/conexiones', icono: Package, requierePlan: true },
   { nombre: 'Transportadoras', ruta: '/transportadoras', icono: Truck },
-  
   { nombre: 'Planes de Suscripción', ruta: '/planes', icono: CreditCard, badge: 'Pack' },
 ];
 
@@ -76,7 +74,7 @@ export default function Sidebar() {
   // Filtrar los módulos que requieren plan activo
   const menuItemsVisibles = MENU_ITEMS_BASE.filter((item) => {
     if (item.requierePlan && !tienePlanActivo) {
-      return false; // Se oculta Negocios y Productos si no hay plan
+      return false;
     }
     return true;
   });
