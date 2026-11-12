@@ -15,76 +15,93 @@ import {
   AlertTriangle, 
   PauseCircle,
   FileCheck,
-  Calendar
+  Calendar,
+  HeadphonesIcon
 } from 'lucide-react';
 
+export type PlanId = 'rescatista' | 'blindaje' | 'expansion' | 'elite';
+
 interface Plan {
-  id: 'rescatista' | 'experto' | 'control_total';
+  id: PlanId;
   nombre: string;
   tagline: string;
-  precioCOP: string;
   precioUSD: string;
-  cupoGuias: number;
+  precioCOP: string;
   destacado?: boolean;
-  beneficios: string[];
+  badgeDestacado?: string;
+  encabezadoAgentes: string;
+  agentes: string[];
+  acompanamiento: string;
 }
 
 const PLANES_DISPONIBLES: Plan[] = [
   {
     id: 'rescatista',
     nombre: 'Plan Rescatista',
-    tagline: 'Movilización prioritaria y reportes diarios del negocio.',
-    precioCOP: '$ 276.000 COP', // Valor estimado a ~4.000 COP
-    precioUSD: '69 USD',
-    cupoGuias: 1500,
-    beneficios: [
+    tagline: 'Rescate operativo, control de novedades y cobranza CAS esencial.',
+    precioUSD: '$79 USD',
+    precioCOP: '$325.000 COP',
+    encabezadoAgentes: 'Agentes incluidos:',
+    agentes: [
       'Agente de Movilización de Guías Estancadas (+3 Días)',
       'Agente de Notificaciones de Novedades sin Solución',
-      'Agente de Reporte Diario del Negocio',
-      'Soporte operativo vía ticket Dropi',
-      'ATOM academia'
-    ]
+      'Agente de Cierre de Novedad (+10 Días)',
+      'Agente de Cierre Logístico (+30 Días)'
+    ],
+    acompanamiento: 'ATOM Academia con cursos y tutoriales, sesiones en vivo cada mes y soporte 24/7.'
   },
   {
-    id: 'experto',
-    nombre: 'Plan Experto',
-    tagline: 'Cierres logísticos, auditoría y protección financiera.',
-    precioCOP: '$ 396.000 COP', // Valor estimado a ~4.000 COP
-    precioUSD: '99 USD',
-    cupoGuias: 3000,
+    id: 'blindaje',
+    nombre: 'Plan Blindaje',
+    tagline: 'Auditoría de bodega, reportes ejecutivos y protección de márgenes.',
+    precioUSD: '$129 USD',
+    precioCOP: '$525.000 COP',
     destacado: true,
-    beneficios: [
-      'Todo lo incluido en el Plan Rescatista',
-      'Agente de Cierre de Novedad (+10 Días)',
-      'Agente de Cierre Logístico (+30 Días)',
+    badgeDestacado: 'Más Popular',
+    encabezadoAgentes: 'Todo lo del Plan Rescatista, más:',
+    agentes: [
+      'Agente de Reporte Diario del Negocio',
       'Agente de Auditoría de Devoluciones No Ingresadas (+7 Días)',
       'Agente de Escudo Financiero de Márgenes'
-    ]
+    ],
+    acompanamiento: 'ATOM Academia, sesiones en vivo cada mes y soporte prioritario 24/7.'
   },
   {
-    id: 'control_total',
-    nombre: 'Plan Control Total',
-    tagline: 'Inteligencia avanzada, expansión y predicción de stock.',
-    precioCOP: '$ 596.000 COP', // Valor estimado a ~4.000 COP
-    precioUSD: '149 USD',
-    cupoGuias: 5000,
-    beneficios: [
-      'Todo lo incluido en el Plan Experto',
-      'Agente de Conexiones Inteligente con Sellers',
-      'Agente Liquidador de Capital Muerto con Sellers',
+    id: 'expansion',
+    nombre: 'Plan Expansión',
+    tagline: 'Gobierno de inventario, liquidación de capital y conquista territorial.',
+    precioUSD: '$179 USD',
+    precioCOP: '$725.000 COP',
+    encabezadoAgentes: 'Todo lo del Plan Blindaje, más:',
+    agentes: [
       'Agente Rotura de Stock',
-      'Agente Predictivo de Importación (Demanda Inducida)',
+      'Agente Liquidador de Capital Muerto con Sellers (incluye 10 créditos comerciales/mes)',
       'Agente Explorador de Mercados (Expansión Territorial)'
-    ]
+    ],
+    acompanamiento: 'ATOM Academia, sesiones en vivo cada mes y soporte prioritario 24/7.'
+  },
+  {
+    id: 'elite',
+    nombre: 'Plan Élite',
+    tagline: 'Escala masiva, predicción de importación y conexión directa con top sellers.',
+    precioUSD: '$299 USD',
+    precioCOP: '$1.225.000 COP',
+    encabezadoAgentes: 'Todo lo del Plan Expansión, más:',
+    agentes: [
+      'Agente Predictivo de Importación (Demanda Inducida)',
+      'Agente de Conexiones Inteligente con Sellers (incluye 25 créditos comerciales/mes)',
+      'Agentes de Crecimiento Masivo (Estrategia Confió)'
+    ],
+    acompanamiento: 'Onboarding personalizado, sesiones estratégicas 1 a 1 y canal VIP 24/7.'
   }
 ];
 
 export default function PlanesPage() {
-  const [planActivo, setPlanActivo] = useState<'rescatista' | 'experto' | 'control_total' | null>(null);
+  const [planActivo, setPlanActivo] = useState<PlanId | null>(null);
   const [renovacionAutomatica, setRenovacionAutomatica] = useState<boolean>(false);
   
-  const [fechaInicio, setFechaInicio] = useState<string>('03 Nov 2026');
-  const [fechaFin, setFechaFin] = useState<string>('03 Dic 2026');
+  const [fechaInicio, setFechaInicio] = useState<string>('11 Nov 2026');
+  const [fechaFin, setFechaFin] = useState<string>('11 Dic 2026');
   const [diasRestantes, setDiasRestantes] = useState<number>(30);
 
   const [modalContratar, setModalContratar] = useState<Plan | null>(null);
@@ -96,8 +113,9 @@ export default function PlanesPage() {
     const planGuardado = localStorage.getItem('atom_plan_activo');
     const renovacionGuardada = localStorage.getItem('atom_renovacion_activa');
 
-    if (planGuardado && planGuardado !== 'null') {
-      setPlanActivo(planGuardado as 'rescatista' | 'experto' | 'control_total');
+    const idsValidos: PlanId[] = ['rescatista', 'blindaje', 'expansion', 'elite'];
+    if (planGuardado && idsValidos.includes(planGuardado as PlanId)) {
+      setPlanActivo(planGuardado as PlanId);
     } else {
       setPlanActivo(null);
     }
@@ -106,6 +124,8 @@ export default function PlanesPage() {
       setRenovacionAutomatica(renovacionGuardada === 'true');
     }
   }, []);
+
+  const planActualObj = PLANES_DISPONIBLES.find((p) => p.id === planActivo) || null;
 
   const handleConfirmarPlan = () => {
     if (!autorizaDescuento) {
@@ -120,8 +140,8 @@ export default function PlanesPage() {
     setTimeout(() => {
       setPlanActivo(modalContratar.id);
       setRenovacionAutomatica(true);
-      setFechaInicio('03 Nov 2026');
-      setFechaFin('03 Dic 2026');
+      setFechaInicio('11 Nov 2026');
+      setFechaFin('11 Dic 2026');
       setDiasRestantes(30);
 
       localStorage.setItem('atom_plan_activo', modalContratar.id);
@@ -158,7 +178,7 @@ export default function PlanesPage() {
               <ShieldCheck size={22} strokeWidth={2.4} />
             </div>
             <div>
-              <div className="flex items-center gap-2.5">
+              <div className="flex items-center gap-2.5 flex-wrap">
                 <h1 className="text-2xl font-extrabold text-slate-800 tracking-tight">
                   Planes de Suscripción Agéntica · ATOM PRO
                 </h1>
@@ -173,7 +193,7 @@ export default function PlanesPage() {
             </div>
           </div>
           <p className="text-xs text-slate-500 mt-1 max-w-2xl font-medium">
-            Elige el plan que mejor se adapte a tu volumen logístico. Al activar tu plan mediante débito de Wallet Dropi, habilitas inmediatamente la suite en el Administrador.
+            Al activar tu suscripción mediante débito de Wallet Dropi, habilitas de inmediato tus agentes en el Administrador.
           </p>
         </div>
 
@@ -211,24 +231,23 @@ export default function PlanesPage() {
             </div>
             
             <p className="text-xl font-extrabold text-slate-800 tracking-tight">
-              {planActivo === 'control_total' && 'Plan Control Total ($ 596.000 COP / 149 USD)'}
-              {planActivo === 'experto' && 'Plan Experto ($ 396.000 COP / 99 USD)'}
-              {planActivo === 'rescatista' && 'Plan Rescatista ($ 276.000 COP / 69 USD)'}
-              {!planActivo && 'No tienes un plan activo actualmente'}
+              {planActualObj 
+                ? `${planActualObj.nombre} (${planActualObj.precioUSD} / ${planActualObj.precioCOP} al mes)` 
+                : 'No tienes un plan activo actualmente'}
             </p>
 
             <p className="text-xs text-slate-500 font-medium">
-              {planActivo && renovacionAutomatica ? (
-                `Vigencia activa del ${fechaInicio} al ${fechaFin}. Faltan ${diasRestantes} días para el próximo pago con descuento automático en Wallet Dropi.`
-              ) : planActivo && !renovacionAutomatica ? (
+              {planActualObj && renovacionAutomatica ? (
+                `Próxima renovación automática el ${fechaFin} en Wallet Dropi.`
+              ) : planActualObj && !renovacionAutomatica ? (
                 'Renovación automática pausada. Los agentes se desactivarán al finalizar el ciclo.'
               ) : (
-                'Selecciona un plan para desbloquear y operar las tools agénticas en el Administrador.'
+                'Selecciona un plan para desbloquear y operar tus agentes autónomos en el Administrador.'
               )}
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-wrap">
             {planActivo ? (
               <>
                 <Link
@@ -236,7 +255,7 @@ export default function PlanesPage() {
                   className="bg-[#FA7C16] hover:bg-[#EA580C] text-white text-xs font-extrabold px-4 py-2.5 rounded-xl transition-all shadow-xs flex items-center gap-2 cursor-pointer"
                 >
                   <Bot size={16} />
-                  <span>Ir al Administrador de Tools</span>
+                  <span>Ir al Administrador de Agentes</span>
                   <ArrowRight size={14} />
                 </Link>
 
@@ -258,63 +277,79 @@ export default function PlanesPage() {
         </div>
       </div>
 
-      {/* TARJETAS DE PLANES CON TEXTOS Y BENEFICIOS */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {/* TARJETAS DE LOS 4 PLANES */}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5 items-stretch">
         {PLANES_DISPONIBLES.map((plan) => {
           const esPlanActual = planActivo === plan.id;
 
           return (
             <div
               key={plan.id}
-              className={`bg-white border-2 rounded-[28px] p-6 lg:p-8 flex flex-col justify-between transition-all duration-300 shadow-xs relative ${
-                plan.destacado ? 'border-orange-500/90 ring-4 ring-orange-500/5' : 'border-slate-200'
+              className={`bg-white border-2 rounded-[28px] p-6 flex flex-col justify-between transition-all duration-300 shadow-xs relative ${
+                plan.destacado 
+                  ? 'border-[#FA7C16] ring-4 ring-orange-500/10' 
+                  : esPlanActual
+                  ? 'border-emerald-500/80'
+                  : 'border-slate-200 hover:border-slate-300'
               }`}
             >
               {plan.destacado && (
-                <div className="absolute -top-3.5 right-6 bg-[#FA7C16] text-white text-[10px] font-extrabold uppercase tracking-wider px-3 py-1 rounded-full shadow-xs flex items-center gap-1">
+                <div className="absolute -top-3.5 right-5 bg-[#FA7C16] text-white text-[10px] font-extrabold uppercase tracking-wider px-3 py-1 rounded-full shadow-xs flex items-center gap-1">
                   <Sparkles size={12} />
-                  <span>Recomendado</span>
+                  <span>{plan.badgeDestacado || 'Más Popular'}</span>
                 </div>
               )}
 
-              <div className="space-y-5">
+              <div className="space-y-4">
+                {/* Título y descripción corta */}
                 <div>
-                  <h3 className="text-xl font-extrabold text-slate-800 tracking-tight">
+                  <h3 className="text-lg font-extrabold text-slate-800 tracking-tight">
                     {plan.nombre}
                   </h3>
-                  <p className="text-xs text-slate-500 mt-1 font-medium">
+                  <p className="text-[11.5px] text-slate-500 mt-1 font-medium leading-relaxed">
                     {plan.tagline}
                   </p>
                 </div>
 
-                <div className="p-4 bg-slate-50 border border-slate-100 rounded-2xl flex flex-col justify-center">
-                  <div className="flex items-baseline">
-                    <span className="text-xl font-extrabold text-slate-800 font-mono">
+                {/* Bloque de Precio USD + COP */}
+                <div className="p-3.5 bg-slate-50 border border-slate-100 rounded-2xl">
+                  <div className="flex items-baseline gap-1.5">
+                    <span className="text-2xl font-black text-slate-900 font-mono">
                       {plan.precioUSD}
                     </span>
-                    <span className="text-xs font-bold text-slate-500 ml-1.5">
-                      / mes
-                    </span>
+                    <span className="text-xs font-bold text-slate-400">/ mes</span>
                   </div>
-                  <span className="text-[11px] text-slate-500 mt-1">{plan.precioCOP} (Aprox)</span>
+                  <p className="text-xs font-bold text-slate-600 font-mono mt-0.5">
+                    {plan.precioCOP} <span className="font-sans font-medium text-slate-400">al mes</span>
+                  </p>
                 </div>
 
-                <div className="space-y-2.5 pt-2">
-                  <span className="text-[10px] font-extrabold uppercase text-slate-400 tracking-wider">
-                    Funcionalidades Incluidas:
+                {/* Lista de Agentes Incluidos */}
+                <div className="space-y-2.5 pt-1">
+                  <span className="text-[10.5px] font-extrabold uppercase text-slate-500 tracking-wider block">
+                    {plan.encabezadoAgentes}
                   </span>
                   <ul className="space-y-2">
-                    {plan.beneficios.map((beneficio, i) => (
-                      <li key={i} className="flex items-start gap-2.5 text-xs text-slate-700 leading-snug">
-                        <CheckCircle2 size={16} className="text-emerald-500 shrink-0 mt-0.5" />
-                        <span>{beneficio}</span>
+                    {plan.agentes.map((agente, i) => (
+                      <li key={i} className="flex items-start gap-2 text-xs text-slate-700 leading-snug">
+                        <CheckCircle2 size={15} className="text-emerald-500 shrink-0 mt-0.5" />
+                        <span className="font-medium">{agente}</span>
                       </li>
                     ))}
                   </ul>
                 </div>
               </div>
 
-              <div className="pt-6 mt-6 border-t border-slate-100">
+              {/* Pie de tarjeta: Acompañamiento + Botón de acción */}
+              <div className="pt-5 mt-5 border-t border-slate-100 space-y-4">
+                <div className="bg-slate-50/90 border border-slate-200/70 rounded-xl p-3 flex items-start gap-2">
+                  <HeadphonesIcon size={14} className="text-[#FA7C16] shrink-0 mt-0.5" />
+                  <div className="text-[11px] text-slate-600 leading-snug">
+                    <strong className="text-slate-800 block mb-0.5">Acompañamiento:</strong>
+                    {plan.acompanamiento}
+                  </div>
+                </div>
+
                 {esPlanActual ? (
                   <div className="w-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-extrabold py-3 rounded-xl flex items-center justify-center gap-2">
                     <Check size={16} strokeWidth={2.6} />
@@ -327,7 +362,11 @@ export default function PlanesPage() {
                       setModalContratar(plan);
                       setAutorizaDescuento(false);
                     }}
-                    className="w-full bg-[#FA7C16] hover:bg-[#EA580C] text-white text-xs font-extrabold py-3 rounded-xl transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer"
+                    className={`w-full text-xs font-extrabold py-3 rounded-xl transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer ${
+                      plan.destacado
+                        ? 'bg-[#FA7C16] hover:bg-[#EA580C] text-white'
+                        : 'bg-slate-900 hover:bg-[#FA7C16] text-white'
+                    }`}
                   >
                     <span>{planActivo ? 'Cambiar a este Plan' : 'Activar y Pagar por Wallet'}</span>
                     <ArrowRight size={14} />
@@ -370,8 +409,8 @@ export default function PlanesPage() {
             <div className="bg-orange-50/80 border border-orange-200 rounded-2xl p-4 space-y-2">
               <div className="flex justify-between items-baseline">
                 <span className="text-xs font-bold text-orange-950 uppercase">Tarifa Mensual Recurrente</span>
-                <span className="text-xl font-extrabold text-[#FA7C16] font-mono">
-                  {modalContratar.precioUSD} <span className="text-xs text-orange-800 font-sans">({modalContratar.precioCOP})</span>
+                <span className="text-lg font-extrabold text-[#FA7C16] font-mono">
+                  {modalContratar.precioUSD} <span className="text-xs text-orange-800 font-sans">/ {modalContratar.precioCOP}</span>
                 </span>
               </div>
             </div>
@@ -399,7 +438,7 @@ export default function PlanesPage() {
                 className="mt-0.5 w-4 h-4 text-orange-600 rounded cursor-pointer" 
               />
               <span className="text-xs font-medium text-slate-700 leading-relaxed">
-                <strong>Autorización de descuento automático:</strong> Autorizo formalmente a Dropi y ATOM IA a descontar mensualmente el valor de <strong>{modalContratar.precioUSD}</strong> directamente del saldo de mi Wallet Dropi al inicio de cada ciclo de 30 días. Entiendo que puedo desactivar esta suscripción en cualquier momento.
+                <strong>Autorización de descuento automático:</strong> Autorizo formalmente a Dropi y ATOM IA a descontar mensualmente el valor de <strong>{modalContratar.precioUSD} ({modalContratar.precioCOP})</strong> directamente del saldo de mi Wallet Dropi al inicio de cada ciclo de 30 días. Entiendo que puedo desactivar esta suscripción en cualquier momento.
               </span>
             </label>
 
